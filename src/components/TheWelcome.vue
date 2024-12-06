@@ -7,11 +7,24 @@ function toggleDarkMode() {
 </script>
 
 <template>
-  <h1 class="text-3xl font-bold underline">
+
+<header>
+    <div class="wrapper">
+      <nav>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/about">About</RouterLink>
+      </nav>
+    </div>
+  </header>
+  <h1>
     Hello world!
   </h1>
   <div class="card flex justify-center">
-    <Button label="Primary" variant="outlined" style="color: #FFFFFF; background-color: #020617;"/>
+    <Button label="Primary" variant="outlined" />
+  </div>
+
+  <div class="card flex justify-center">
+    <InputText type="text" />
   </div>
 
   <Button label="Toggle Dark Mode" @click="toggleDarkMode()" />

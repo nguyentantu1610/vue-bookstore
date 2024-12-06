@@ -7,9 +7,27 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    Auth: typeof import('./src/components/auth/Auth.vue')['default']
     Button: typeof import('primevue/button')['default']
+    Card: typeof import('primevue/card')['default']
+    FloatLabel: typeof import('primevue/floatlabel')['default']
+    Footer: typeof import('./src/components/Footer.vue')['default']
+    ForgotPassword: typeof import('./src/components/auth/ForgotPassword.vue')['default']
+    InputGroup: typeof import('primevue/inputgroup')['default']
+    InputGroupAddon: typeof import('primevue/inputgroupaddon')['default']
+    InputText: typeof import('primevue/inputtext')['default']
+    Login: typeof import('./src/components/auth/Login.vue')['default']
+    Message: typeof import('primevue/message')['default']
+    NotFound: typeof import('./src/components/NotFound.vue')['default']
+    Panel: typeof import('primevue/panel')['default']
+    Password: typeof import('primevue/password')['default']
+    Register: typeof import('./src/components/auth/Register.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ScrollTop: typeof import('primevue/scrolltop')['default']
     TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    FocusTrap: typeof import('primevue/focustrap')['default']
   }
 }
