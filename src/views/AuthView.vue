@@ -6,7 +6,7 @@
 
 <style>
 #my-div {
-  background-image: url('/bg-snowflake-auth.png');
+  background-image: url('/bg-snowflake.png');
   background-size: cover;
   background-position: center;
 }

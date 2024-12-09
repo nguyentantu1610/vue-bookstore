@@ -1,15 +1,16 @@
 import './assets/tailwind.css'
 
-import { createApp } from 'vue'
+import { createApp, markRaw } from 'vue'
 import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
-import PrimeVue from 'primevue/config'
 
+import PrimeVue from 'primevue/config'
 import { definePreset } from '@primevue/themes'
 import Aura from '@primevue/themes/aura'
 import FocusTrap from 'primevue/focustrap'
+import ToastService from 'primevue/toastservice';
 
 const Noir = definePreset(Aura, {
     semantic: {
@@ -57,12 +58,18 @@ const Noir = definePreset(Aura, {
             }
         }
     }
-});
+})
 
 const app = createApp(App)
 
-app.use(createPinia())
+const pinia = createPinia()
+pinia.use(({ store }) => {
+    store.router = markRaw(router)
+})
+app.use(pinia)
+
 app.use(router)
+
 app.use(PrimeVue, {
     theme: {
         preset: Noir,
@@ -71,6 +78,7 @@ app.use(PrimeVue, {
         }
     }
 })
+app.use(ToastService);
 app.directive('focustrap', FocusTrap)
 
 app.mount('#app')

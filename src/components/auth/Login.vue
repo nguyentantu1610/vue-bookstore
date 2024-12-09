@@ -1,58 +1,67 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useAuthStore } from '@/stores/auth';
+import { storeToRefs } from 'pinia';
+import type Auth from '@/interfaces/Auth';
 
-// const route = useRoute()
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
+const formData = ref<Auth>({
+    email: '',
+    password: ''
+})
+const { errors } = storeToRefs(useAuthStore())
+const { auth, $reset } = useAuthStore()
+const loading = ref<boolean>(false)
 
-const load = () => {
-    loading.value = true;
-    setTimeout(() => {
-        loading.value = false;
-    }, 2000);
-};
+async function login() {
+    loading.value = true
+    await auth('/api/login', formData.value)
+    loading.value = false
+}
+
+onMounted(() => $reset())
 </script>
 
 <template>
-    <div id="my-div" class="flex justify-center items-center bg-zinc-900" style="height: 90vh;">
+    <div id="my-div" class="flex justify-center items-center" style="height: 90vh;">
         <Card v-focustrap class="basis-2/3 xl:basis-1/4 lg:basis-1/3 md:basis-2/5">
             <template #title>
                 <h1 class="text-center">Đăng nhập</h1>
             </template>
             <template #content>
-                <div class="w-11/12 ml-5">
-                    <div class="my-4">
+                <form @submit.prevent="login" class="w-11/12 ml-5 my-4 space-y-4">
+                    <div>
                         <FloatLabel variant="on">
-                            <InputText id="email" fluid autofocus v-model="email" :disabled="loading" />
+                            <InputText type="email" id="email" fluid autofocus maxlength="50" v-model="formData.email"
+                                :invalid="(errors.email !== '' && errors.email !== undefined)" :disabled="loading" />
                             <label for="email">Email</label>
                         </FloatLabel>
-                        <!-- <Message size="small" severity="error" variant="simple">
-                        Enter your username to reset your password.
-                    </Message> -->
+                        <Message v-if="errors.email" size="small" severity="error" variant="simple">
+                            {{ errors.email[0] }}
+                        </Message>
                     </div>
-                    <div class="my-4">
+                    <div>
                         <FloatLabel variant="on">
-                            <Password id="password" fluid toggleMask v-model="password" :disabled="loading" />
+                            <Password id="password" fluid toggleMask maxlength="50" v-model="formData.password"
+                                :invalid="(errors.password !== '' && errors.password !== undefined)"
+                                :disabled="loading" />
                             <label for="password">Mật khẩu</label>
                         </FloatLabel>
-                        <!-- <Message size="small" severity="error" variant="simple">
-                        Enter your username to reset your password.
-                    </Message> -->
+                        <Message v-if="errors.password" size="small" severity="error" variant="simple">
+                            {{ errors.password[0] }}
+                        </Message>
                     </div>
-                    <div class="my-4">
-                        <Button label="Đăng nhập" fluid :loading="loading" @click="load" />
+                    <div>
+                        <Button type="submit" label="Đăng nhập" fluid :loading="loading" />
                     </div>
-                    <div class="my-4 text-center">
+                    <div class="text-center">
                         <RouterLink to="/forgot-password">Quên mật khẩu?</RouterLink>
                     </div>
                     <hr />
-                    <div class="my-4">
+                    <div>
                         <Button as="router-link" label="Đăng ký" to="/register" fluid severity="contrast"
                             variant="outlined" />
                     </div>
-                </div>
+                </form>
             </template>
         </Card>
     </div>

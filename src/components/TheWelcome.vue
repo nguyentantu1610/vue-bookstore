@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth';
+import { storeToRefs } from 'pinia';
+
+const { name } = storeToRefs(useAuthStore())
+const { logout } = useAuthStore()
 
 function toggleDarkMode() {
   document.documentElement.classList.toggle('my-app-dark');
 }
-
 </script>
 
 <template>
 
-<header>
+  <header>
     <div class="wrapper">
       <nav>
         <RouterLink to="/">Home</RouterLink>
@@ -16,11 +20,11 @@ function toggleDarkMode() {
       </nav>
     </div>
   </header>
-  <h1>
-    Hello world!
+  <h1 v-if="name">
+    {{ name }}
   </h1>
   <div class="card flex justify-center">
-    <Button label="Primary" variant="outlined" />
+    <Button label="Logout" variant="outlined" @click="logout" />
   </div>
 
   <div class="card flex justify-center">

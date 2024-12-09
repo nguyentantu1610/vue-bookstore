@@ -10,7 +10,7 @@
 
 <style scoped>
 #my-div {
-    background-image: url('/bg-snowflake-404.png');
+    background-image: url('/bg-snowflake.png');
     background-size: cover;
     background-position: center;
 }
