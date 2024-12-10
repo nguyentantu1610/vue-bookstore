@@ -1,98 +1,99 @@
-import type Auth from "@/interfaces/Auth";
+import type Auth from "@/interfaces/auth";
 import router from "@/router";
 import { defineStore } from "pinia";
-import { useToast } from "primevue";
 import { ref } from "vue";
+import { useDeleteFetch, usePostFetch } from "@/composables/custom-fetch";
+import { useToast } from "primevue";
 
-export const useAuthStore = defineStore('auth', () => {
-    const name = ref<string>('')
-    const errors = ref<Auth>({
-        email: '',
-        verificationCode: '',
-        password: '',
-        passwordConfirmation: ''
-    })
-    const toast = useToast();
+export const useAuthStore = defineStore("auth", () => {
+  const name = ref<string>("");
+  const initData: Auth = {
+    email: "",
+    verification_code: "",
+    password: "",
+    password_confirmation: "",
+  };
+  const authErrors = ref<Auth>(initData);
+  const toast = useToast();
 
-    function $reset() {
-        errors.value.email = ''
-        errors.value.verificationCode = ''
-        errors.value.password = ''
-        errors.value.passwordConfirmation = ''
+  function $reset() {
+    authErrors.value = initData;
+  }
+
+  /**
+   * This function perform login/register/forgot password/ send code
+   *
+   * @param {string} uri The uri
+   * @param {Auth} formData The form input data
+   */
+  async function auth(uri: string, formData: Auth) {
+    $reset();
+    const { data, status } = await usePostFetch<Auth>(uri, formData);
+    if (status === 422) {
+      authErrors.value = data.errors;
     }
-
-    // Login/Register/Forgot Password
-    async function auth(uri: string, formData: Auth) {
-        try {
-            $reset()
-            const response = await fetch(uri, {
-                method: 'POST',
-                body: JSON.stringify(formData),
-                headers: { Accept: 'application/json' }
-            })
-            const contentType = response.headers.get("content-type")
-            if (!contentType || !contentType.includes("application/json")) throw new TypeError("Expected JSON!")
-            const data = await response.json();
-            if (!response.ok) {
-                if (response.status === 422) errors.value = data.errors;
-                (() => toast.add({ severity: 'error', summary: 'Lỗi', detail: data.message, life: 3000 }))()
-                throw new Error(data.message)
-            }
-            if (uri === '/api/login') {
-                localStorage.setItem('token', data.data.token)
-                name.value = data.data.name;
-                (() => toast.add({ severity: 'success', summary: 'Thành công', detail: data.message, life: 5000 }))()
-                router.push({ name: 'home' })
-            }
-        } catch (error) {
-            console.error(error)
-        }
+    if (status >= 200 && status <= 299) {
+      if (
+        uri === "/api/send-register-code" ||
+        uri === "/api/send-forgot-code"
+      ) {
+        console.log(data.code);
+      }
+      if (uri === "/api/login") {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.name);
+        router.push({ name: "home" });
+      }
+      if (uri === "/api/register" || uri === "/api/forgot-password") {
+        router.push({ name: "login" });
+      }
+      toast.add({
+        severity: "success",
+        summary: "Thành công",
+        detail: data.message,
+        life: 3000,
+      });
+    } else {
+      toast.add({
+        severity: "error",
+        summary: "Lỗi",
+        detail: data.message,
+        life: 3000,
+      });
     }
+  }
 
-    async function getName() {
-        try {
-            const token = localStorage.getItem('token')
-            if (token) {
-                const response = await fetch('/api/user-name', {
-                    headers: {
-                        authorization: `Bearer ${token}`,
-                        Accept: 'application/json'
-                    }
-                })
-                const contentType = response.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) throw new TypeError("Expected JSON!")
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message)
-                name.value = data.data.name
-            }
-        } catch (error) {
-            console.error(error)
-        }
+  // Get user name
+  function getName() {
+    const username = localStorage.getItem("username");
+    if (username) {
+      name.value = username;
     }
+  }
 
-    async function logout() {
-        try {
-            const token = localStorage.getItem('token')
-            if (token) {
-                const response = await fetch('/api/logout', {
-                    method: 'DELETE',
-                    headers: {
-                        authorization: `Bearer ${token}`
-                    }
-                })
-                if (!(response.status === 204)) {
-                    (() => toast.add({ severity: 'error', summary: 'Lỗi', detail: 'Đăng xuất thất bại', life: 3000 }))()
-                    throw new Error(`Response status: ${response.status}`);
-                }
-                (() => toast.add({ severity: 'success', summary: 'Thành công', detail: 'Đăng xuất thành công', life: 5000 }))()
-                name.value = ''
-                localStorage.removeItem('token')
-                router.push('/login')
-            }
-        } catch (error) {
-            console.error(error)
-        }
+  // Logout system
+  async function logout() {
+    const { isDeleted } = await useDeleteFetch("/api/logout");
+    if (isDeleted) {
+      name.value = "";
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      router.push({ name: "login" });
+      toast.add({
+        severity: "success",
+        summary: "Thành công",
+        detail: "Đăng xuất thành công",
+        life: 3000,
+      });
+    } else {
+      toast.add({
+        severity: "error",
+        summary: "Lỗi",
+        detail: "Đăng xuất thất bại",
+        life: 3000,
+      });
     }
+  }
 
-    return { name, errors, $reset, auth, getName, logout }
-})
+  return { name, authErrors, $reset, auth, getName, logout };
+});

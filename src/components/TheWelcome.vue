@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/auth';
-import { storeToRefs } from 'pinia';
+import { useAuthStore } from "@/stores/auth";
+import { storeToRefs } from "pinia";
+import { onMounted } from "vue";
 
-const { name } = storeToRefs(useAuthStore())
-const { logout } = useAuthStore()
+const { name } = storeToRefs(useAuthStore());
+const { getName } = useAuthStore();
+const { logout } = useAuthStore();
 
 function toggleDarkMode() {
-  document.documentElement.classList.toggle('my-app-dark');
+  document.documentElement.classList.toggle("my-app-dark");
 }
+
+onMounted(() => getName());
 </script>
 
 <template>
-
   <header>
     <div class="wrapper">
       <nav>

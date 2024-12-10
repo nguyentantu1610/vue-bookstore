@@ -1,67 +1,70 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import { useAuthStore } from '@/stores/auth'
-import { storeToRefs } from 'pinia'
+import { createRouter, createWebHistory } from "vue-router";
+import HomeView from "../views/HomeView.vue";
+import { useAuthStore } from "@/stores/auth";
+import { storeToRefs } from "pinia";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
-      name: 'home',
+      path: "/",
+      name: "home",
       component: HomeView,
+      alias: ["/home"],
       meta: { requiresAuth: false },
     },
     {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
+      path: "/auth",
+      component: () => import("../views/AuthView.vue"),
       meta: { requiresAuth: false },
-    },
-    {
-      path: '/auth',
-      name: 'auth',
-      component: () => import('../views/AuthView.vue'),
-      redirect: '/login',
+      redirect: "/login",
       children: [
         {
-          path: 'login',
-          name: 'login',
-          component: () => import('../components/auth/Login.vue'),
-          alias: ['/login'],
-          meta: { requiresAuth: false },
+          path: "/login",
+          name: "login",
+          component: () => import("../components/auth/Login.vue"),
+          meta: {
+            enter: 'animate__animated animate__fadeInLeft',
+            leave: 'animate__animated animate__fadeOutRight',
+          }
         },
         {
-          path: 'register',
-          name: 'register',
-          component: () => import('../components/auth/Register.vue'),
-          alias: ['/register'],
-          meta: { requiresAuth: false },
+          path: "/register",
+          name: "register",
+          component: () => import("../components/auth/Register.vue"),
+          meta: {
+            enter: 'animate__animated animate__fadeInRight',
+            leave: 'animate__animated animate__fadeOutLeft',
+          }
         },
         {
-          path: 'forgot-password',
-          name: 'forgot-password',
-          component: () => import('../components/auth/ForgotPassword.vue'),
-          alias: ['/forgot-password'],
-          meta: { requiresAuth: true },
-        }
-      ]
+          path: "/forgot-password",
+          name: "forgot-password",
+          component: () => import("../components/auth/ForgotPassword.vue"),
+          meta: {
+            enter: 'animate__animated animate__fadeInRight',
+            leave: 'animate__animated animate__fadeOutLeft',
+          }
+        },
+      ],
     },
     {
-      path: '/:pathMatch(.*)*',
-      name: 'NotFound',
-      component: () => import('../views/NotFoundView.vue'),
+      path: "/:pathMatch(.*)*",
+      name: "NotFound",
+      component: () => import("../views/NotFoundView.vue"),
+      meta: { requiresAuth: false },
     },
   ],
-})
+});
 
 router.beforeEach(async (to) => {
-  const { name } = storeToRefs(useAuthStore())
-  const { getName } = useAuthStore()
-  await getName()
-  if (to.meta.requiresAuth && !name.value) {
-    return { name: 'login' }
+  const token = localStorage.getItem("token");
+  if (to.meta.requiresAuth && !token && to.name !== 'login') {
+    return { name: "login" };
   }
-})
+  if (!to.meta.requiresAuth && token && to.name !== 'home') {
+    return { name: "home" };
+  }
+});
 
-export default router
+export default router;

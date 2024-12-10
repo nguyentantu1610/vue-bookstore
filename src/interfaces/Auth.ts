@@ -1,6 +1,6 @@
 export default interface Auth {
-    email: string,
-    verificationCode?: string,
-    password: string,
-    passwordConfirmation?: string
+  email: string;
+  verification_code?: string;
+  password: string;
+  password_confirmation?: string;
 }
