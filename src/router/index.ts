@@ -24,27 +24,27 @@ const router = createRouter({
           name: "login",
           component: () => import("../components/auth/Login.vue"),
           meta: {
-            enter: 'animate__animated animate__fadeInLeft',
-            leave: 'animate__animated animate__fadeOutRight',
-          }
+            enter: "animate__animated animate__fadeInLeft",
+            leave: "animate__animated animate__fadeOutRight animate__faster",
+          },
         },
         {
           path: "/register",
           name: "register",
           component: () => import("../components/auth/Register.vue"),
           meta: {
-            enter: 'animate__animated animate__fadeInRight',
-            leave: 'animate__animated animate__fadeOutLeft',
-          }
+            enter: "animate__animated animate__fadeInRight",
+            leave: "animate__animated animate__fadeOutLeft animate__faster",
+          },
         },
         {
           path: "/forgot-password",
           name: "forgot-password",
           component: () => import("../components/auth/ForgotPassword.vue"),
           meta: {
-            enter: 'animate__animated animate__fadeInRight',
-            leave: 'animate__animated animate__fadeOutLeft',
-          }
+            enter: "animate__animated animate__fadeInRight",
+            leave: "animate__animated animate__fadeOutLeft animate__faster",
+          },
         },
       ],
     },
@@ -59,10 +59,10 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const token = localStorage.getItem("token");
-  if (to.meta.requiresAuth && !token && to.name !== 'login') {
+  if (to.meta.requiresAuth && !token && to.name !== "login") {
     return { name: "login" };
   }
-  if (!to.meta.requiresAuth && token && to.name !== 'home') {
+  if (!to.meta.requiresAuth && token && to.name !== "home") {
     return { name: "home" };
   }
 });
