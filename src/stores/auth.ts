@@ -2,11 +2,16 @@ import type Auth from "@/interfaces/auth";
 import router from "@/router";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { useDeleteFetch, usePostFetch } from "@/composables/custom-fetch";
+import {
+  useDeleteFetch,
+  useGetFetch,
+  usePostFetch,
+} from "@/composables/custom-fetch";
 import { useToast } from "primevue";
 
 export const useAuthStore = defineStore("auth", () => {
   const name = ref<string>("");
+  const isAdmin = ref<boolean>(false);
   const initData: Auth = {
     email: "",
     verification_code: "",
@@ -29,9 +34,6 @@ export const useAuthStore = defineStore("auth", () => {
   async function auth(uri: string, formData: Auth) {
     $reset();
     const { data, status } = await usePostFetch<Auth>(uri, formData);
-    if (status === 422) {
-      authErrors.value = data.errors;
-    }
     if (status >= 200 && status <= 299) {
       if (
         uri === "/api/send-register-code" ||
@@ -41,8 +43,11 @@ export const useAuthStore = defineStore("auth", () => {
       }
       if (uri === "/api/login") {
         localStorage.setItem("token", data.token);
-        localStorage.setItem("username", data.name);
-        router.push({ name: "home" });
+        if (!data.isAdmin) {
+          router.push({ name: "home" });
+        } else {
+          router.push({ name: "admin" });
+        }
       }
       if (uri === "/api/register" || uri === "/api/forgot-password") {
         router.push({ name: "login" });
@@ -53,31 +58,44 @@ export const useAuthStore = defineStore("auth", () => {
         detail: data.message,
         life: 3000,
       });
-    } else {
-      toast.add({
-        severity: "error",
-        summary: "Lỗi",
-        detail: data.message,
-        life: 3000,
-      });
+      return;
     }
+    if (status === 422) {
+      authErrors.value = data.errors;
+    }
+    toast.add({
+      severity: "error",
+      summary: "Lỗi",
+      detail: data.message,
+      life: 3000,
+    });
   }
 
-  // Get user name
-  function getName() {
-    const username = localStorage.getItem("username");
-    if (username) {
-      name.value = username;
+  // Check user
+  async function checkUser() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const myHeaders = new Headers();
+      myHeaders.append("Accept", "application/json");
+      myHeaders.append("Authorization", `Bearer ${token}`);
+      const { data, status } = await useGetFetch("/api/check-user", myHeaders);
+      if (status >= 200 && status <= 299) {
+        name.value = data.name;
+        isAdmin.value = data.isAdmin;
+      }
+      if (status === 401) {
+        localStorage.removeItem("token");
+      }
     }
   }
 
   // Logout system
   async function logout() {
-    const { isDeleted } = await useDeleteFetch("/api/logout");
-    if (isDeleted) {
+    const { isSuccessful } = await useDeleteFetch("/api/logout");
+    if (isSuccessful) {
       name.value = "";
+      isAdmin.value = false;
       localStorage.removeItem("token");
-      localStorage.removeItem("username");
       router.push({ name: "login" });
       toast.add({
         severity: "success",
@@ -85,15 +103,15 @@ export const useAuthStore = defineStore("auth", () => {
         detail: "Đăng xuất thành công",
         life: 3000,
       });
-    } else {
-      toast.add({
-        severity: "error",
-        summary: "Lỗi",
-        detail: "Đăng xuất thất bại",
-        life: 3000,
-      });
+      return;
     }
+    toast.add({
+      severity: "error",
+      summary: "Lỗi",
+      detail: "Đăng xuất thất bại",
+      life: 3000,
+    });
   }
 
-  return { name, authErrors, $reset, auth, getName, logout };
+  return { name, isAdmin, authErrors, $reset, auth, checkUser, logout };
 });

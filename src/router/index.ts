@@ -17,7 +17,7 @@ const router = createRouter({
       path: "/auth",
       component: () => import("../views/AuthView.vue"),
       meta: { requiresAuth: false },
-      redirect: "/login",
+      redirect: { name: "login" },
       children: [
         {
           path: "/login",
@@ -49,22 +49,51 @@ const router = createRouter({
       ],
     },
     {
+      path: "/admin",
+      name: "admin",
+      component: () => import("../views/AdminView.vue"),
+      meta: { requiresAdmin: true },
+      children: [
+        {
+          path: "category",
+          name: "category",
+          component: () =>
+            import("../components/admin/category/CategoryManagement.vue"),
+        },
+      ],
+    },
+    {
       path: "/:pathMatch(.*)*",
       name: "NotFound",
       component: () => import("../views/NotFoundView.vue"),
       meta: { requiresAuth: false },
     },
   ],
+  linkActiveClass: 'border-zinc-900 border-l-2',
+  linkExactActiveClass: 'border-zinc-950 border-l-2',
 });
 
 router.beforeEach(async (to) => {
-  const token = localStorage.getItem("token");
-  if (to.meta.requiresAuth && !token && to.name !== "login") {
-    return { name: "login" };
-  }
-  if (!to.meta.requiresAuth && token && to.name !== "home") {
+  const { checkUser } = useAuthStore();
+  const { name, isAdmin } = storeToRefs(useAuthStore());
+
+  await checkUser();
+  if (
+    !to.meta.requiresAuth &&
+    name.value &&
+    (to.name == "login" ||
+      to.name == "register" ||
+      to.name == "forgot-password")
+  ) {
     return { name: "home" };
   }
+  if (to.meta.requiresAuth && !name.value && to.name !== "login") {
+    return { name: "login" };
+  }
+  if (to.meta.requiresAdmin && !isAdmin.value) {
+    return { name: "NotFound" };
+  }
+  return true;
 });
 
 export default router;

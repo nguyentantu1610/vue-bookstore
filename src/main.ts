@@ -1,5 +1,6 @@
 import "./assets/tailwind.css";
 import "animate.css";
+import "primeicons/primeicons.css";
 
 import { createApp, markRaw } from "vue";
 import { createPinia } from "pinia";
@@ -76,6 +77,7 @@ app.use(PrimeVue, {
     preset: Noir,
     options: { darkModeSelector: ".my-app-dark" },
   },
+  ripple: true,
 });
 app.use(ToastService);
 app.directive("focustrap", FocusTrap);

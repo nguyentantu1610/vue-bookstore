@@ -2,7 +2,7 @@
 import type Auth from "@/interfaces/auth";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
-import { onMounted, ref } from "vue";
+import { onUnmounted, ref } from "vue";
 
 const formData = ref<Auth>({
   email: "",
@@ -37,7 +37,7 @@ async function sendVerificationCode() {
   await auth("/api/send-register-code", formData.value);
 }
 
-onMounted(() => $reset());
+onUnmounted(() => $reset());
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onUnmounted, ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
 import type Auth from "@/interfaces/auth";
@@ -18,7 +18,7 @@ async function login() {
   loading.value = false;
 }
 
-onMounted(() => $reset());
+onUnmounted(() => $reset());
 </script>
 
 <template>
