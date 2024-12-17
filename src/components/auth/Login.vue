@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onUnmounted, ref } from "vue";
+import type Auth from "@/interfaces/auth";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
-import type Auth from "@/interfaces/auth";
 
 const formData = ref<Auth>({
   email: "",

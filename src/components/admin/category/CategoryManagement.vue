@@ -1,62 +1,95 @@
 <script setup lang="ts">
-import { useToast } from "primevue";
-import { ref } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
+import type Category from "@/interfaces/category";
+import { storeToRefs } from "pinia";
+import { useCategoryStore } from "@/stores/category";
 
-const visible = ref(false);
-const toast = useToast();
-const editingRows = ref([]);
-const lazyLoad = ref<boolean>(false);
-const first = ref();
-const products = ref([
-  {
-    description: "Hello World",
-    name: "Bamboo Watch",
-    created_at: "16/12/2024",
-    updated_at: "16/12/2024",
-  },
-  {
-    description: "Hello World",
-    name: "Bamboo Watch1",
-    created_at: "16/12/2024",
-    updated_at: "16/12/2024",
-  },
-  {
-    description: "Hello World",
-    name: "Bamboo Watch2",
-    created_at: "16/12/2024",
-    updated_at: "16/12/2024",
-  },
-]);
+const showModal = ref<boolean>(false);
+const modalType = ref<boolean>(false);
+const loading = ref<boolean>(false);
+const categories = ref<Array<Category> | null>(new Array<Category>(2));
 const columns = ref([
   { field: "description", header: "Mô tả" },
   { field: "created_at", header: "Ngày tạo" },
   { field: "updated_at", header: "Ngày cập nhật" },
+  { field: "deleted_at", header: "Tình trạng" },
 ]);
 const selectedColumns = ref(columns.value);
-
-const onRowEditSave = (event: any) => {
-  let { newData, index } = event;
-
-  products.value[index] = newData;
-  toast.add({
-    severity: "info",
-    summary: newData.name,
-    detail: newData.created_at + " | " + newData.updated_at,
-    life: 3000,
-  });
-  console.log(products.value);
-};
+const sortType = ref<string>("desc");
+const sortBtnIcon = ref("pi pi-sort-amount-down");
+const searchQuery = ref<string>("");
+const totalPages = ref<number>(0);
+const page = ref<number>(0);
+const { getCategories, createOrUpdateCategory, $reset } = useCategoryStore();
+const { results, categoryErrors } = storeToRefs(useCategoryStore());
+const initData: Category = { name: "", description: "" };
+const formData = ref<Category>(initData);
+const key = ref<string>("");
 
 const onToggle = (val: any) => {
   selectedColumns.value = columns.value.filter((col) => val.includes(col));
 };
-const sortBtnIcon = ref("pi pi-sort-amount-up-alt");
-function changeIcon() {
+
+function changeSort() {
   if (sortBtnIcon.value === "pi pi-sort-amount-up-alt") {
     sortBtnIcon.value = "pi pi-sort-amount-down";
-  }
-  else {
+    sortType.value = "desc";
+  } else {
     sortBtnIcon.value = "pi pi-sort-amount-up-alt";
+    sortType.value = "asc";
+  }
+}
+
+async function getData() {
+  categories.value = new Array<Category>(2);
+  await getCategories(
+    `/api/admin/categories?sort_type=${sortType.value}&page=${
+      page.value / 2 + 1
+    }&search_query=${searchQuery.value}`
+  );
+  setTimeout(() => {
+    if (results.value !== null) {
+      categories.value = results.value.data;
+      totalPages.value = results.value.total;
+    } else {
+      categories.value = null;
+      totalPages.value = 0;
+    }
+  }, 1000);
+}
+
+const watcher = watchEffect(async () => await getData());
+
+function showDialog(type: boolean) {
+  $reset();
+  showModal.value = true;
+  modalType.value = type;
+}
+
+const selectRow = (data: any) => {
+  key.value = data.name;
+  formData.value.name = data.name;
+  formData.value.description = data.description;
+  showDialog(true);
+};
+
+async function handleSubmitForm() {
+  loading.value = true;
+  await createOrUpdateCategory(
+    modalType.value ? "PATCH" : "POST",
+    modalType.value
+      ? `/api/admin/categories/${key.value}`
+      : "/api/admin/categories",
+    formData.value
+  );
+  loading.value = false;
+  if (
+    categoryErrors.value.name === "" &&
+    categoryErrors.value.description === ""
+  ) {
+    showModal.value = false;
+    formData.value = initData;
+    await getData();
   }
 }
 </script>
@@ -64,17 +97,15 @@ function changeIcon() {
 <template>
   <div class="pt-6 pl-10">
     <h1 class="text-3xl font-medium mb-6">Danh mục sản phẩm</h1>
-
     <Toolbar class="mb-6">
       <template #start>
         <Button
           label="Thêm mới"
           icon="pi pi-plus"
           class="mr-2"
-          @click="visible = true"
+          @click="showDialog(false)"
         />
       </template>
-      <template #center> </template>
       <template #end>
         <FileUpload
           mode="basic"
@@ -90,59 +121,83 @@ function changeIcon() {
         <Button label="Xuất file" icon="pi pi-upload" severity="secondary" />
       </template>
     </Toolbar>
-
     <Dialog
-      v-model:visible="visible"
+      v-model:visible="showModal"
       modal
-      header="Edit Profile"
+      :header="modalType ? 'Cập nhật danh mục' : 'Thêm mới danh mục'"
       :style="{ width: '25rem' }"
     >
-      <span class="text-surface-500 dark:text-surface-400 block mb-8"
-        >Update your information.</span
-      >
-      <div class="flex items-center gap-4 mb-4">
-        <label for="username" class="font-semibold w-24">Username</label>
-        <InputText id="username" class="flex-auto" autocomplete="off" />
-      </div>
-      <div class="flex items-center gap-4 mb-8">
-        <label for="email" class="font-semibold w-24">Email</label>
-        <InputText id="email" class="flex-auto" autocomplete="off" />
-      </div>
-      <div class="flex justify-end gap-2">
-        <Button
-          type="button"
-          label="Cancel"
-          severity="secondary"
-          @click="visible = false"
-        ></Button>
-        <Button type="button" label="Save" @click="visible = false"></Button>
-      </div>
+      <form @submit.prevent="handleSubmitForm" class="flex flex-col">
+        <div class="w-3/4 self-center mt-1 mb-4">
+          <FloatLabel variant="on">
+            <InputText
+              type="text"
+              id="name"
+              fluid
+              autofocus
+              maxlength="50"
+              v-model="formData.name"
+              :invalid="
+                categoryErrors.name !== '' && categoryErrors.name !== undefined
+              "
+              :disabled="loading"
+            />
+            <label for="name">Tên</label>
+          </FloatLabel>
+          <Message
+            v-if="categoryErrors.name"
+            size="small"
+            severity="error"
+            variant="simple"
+          >
+            {{ categoryErrors.name[0] }}
+          </Message>
+        </div>
+        <div class="self-center mb-6 w-3/4">
+          <FloatLabel variant="on">
+            <InputText
+              type="text"
+              id="description"
+              fluid
+              autofocus
+              maxlength="50"
+              v-model="formData.description"
+              :invalid="
+                categoryErrors.description !== '' &&
+                categoryErrors.description !== undefined
+              "
+              :disabled="loading"
+            />
+            <label for="description">Mô tả</label>
+          </FloatLabel>
+          <Message
+            v-if="categoryErrors.description"
+            size="small"
+            severity="error"
+            variant="simple"
+          >
+            {{ categoryErrors.description[0] }}
+          </Message>
+        </div>
+        <div class="flex justify-end gap-2">
+          <Button
+            type="button"
+            label="Huỷ"
+            severity="secondary"
+            @click="showModal = false"
+          ></Button>
+          <Button type="submit" label="Lưu" :loading="loading"></Button>
+        </div>
+      </form>
     </Dialog>
-
     <DataTable
-      :value="products"
-      v-model:editingRows="editingRows"
-      editMode="row"
-      @row-edit-save="onRowEditSave"
-      :pt="{
-      table: { style: 'min-width: 50rem' },
-      column: {
-        bodycell: ({ state }: any) => ({
-          style:
-            state['d_editing'] &&
-            'padding-top: 0.75rem; padding-bottom: 0.75rem',
-        }),
-      },
-    }"
+      :value="categories"
       scrollable
       scrollHeight="400px"
       showGridlines
-      paginator
-      v-model:first="first"
-      :rows="1"
-      :totalRecords="3"
       resizableColumns
       columnResizeMode="expand"
+      tableStyle="min-width: 50rem"
       class="overflow-y-hidden"
     >
       <template #header>
@@ -157,30 +212,29 @@ function changeIcon() {
               placeholder="Select Columns"
               class="max-w-60"
             />
-          </div> 
+          </div>
           <div class="flex justify-end gap-2 grow">
-            <Button :icon="sortBtnIcon" label="Tên"  @click="changeIcon" iconPos="right" />
+            <Button
+              :icon="sortBtnIcon"
+              label="Tên"
+              iconPos="right"
+              variant="text"
+              @click="changeSort"
+            />
             <IconField>
               <InputIcon>
                 <i class="pi pi-search" />
               </InputIcon>
-              <InputText placeholder="Tìm kiếm" />
+              <InputText placeholder="Tìm kiếm" v-model="searchQuery" />
             </IconField>
-            <Button
-              icon="pi pi-refresh"
-              rounded
-              raised
-              @click="lazyLoad = !lazyLoad"
-            />
+            <Button icon="pi pi-refresh" rounded raised @click="getData" />
           </div>
         </div>
       </template>
-      <Column field="name" header="Tên danh mục">
-        <template #editor="{ data, field }">
-          <InputText v-model="data[field]" />
-        </template>
-        <template #body v-if="lazyLoad">
-          <Skeleton></Skeleton>
+      <Column field="name" header="Tên">
+        <template #body="{ data }">
+          <Skeleton v-if="data === null"></Skeleton>
+          <p v-else>{{ data.name }}</p>
         </template>
       </Column>
       <Column
@@ -189,26 +243,45 @@ function changeIcon() {
         :header="col.header"
         :key="col.field + '_' + index"
       >
-        <template
-          #editor="{ data, field }"
-          v-if="col.field !== 'created_at' && col.field !== 'updated_at'"
-        >
-          <InputText v-model="data[field]" />
-        </template>
-        <template #body v-if="lazyLoad">
-          <Skeleton></Skeleton>
-        </template>
-      </Column>
-      <Column
-        :rowEditor="true"
-        style="width: 10%; min-width: 8rem"
-        bodyStyle="text-align:center"
-      ></Column>
-      <Column class="w-24 !text-end">
         <template #body="{ data }">
-          <Button icon="pi pi-trash" severity="secondary" rounded></Button>
+          <Skeleton v-if="data === null"></Skeleton>
+          <div v-else>
+            <Tag
+              v-if="col.field === 'deleted_at'"
+              :value="data[col.field] === null ? 'Kích hoạt' : 'Vô hiệu'"
+              :severity="data[col.field] === null ? 'success' : ''"
+            />
+            <p v-else>{{ data[col.field] }}</p>
+          </div>
         </template>
       </Column>
+      <Column class="w-24 space-x-2">
+        <template #body="{ data }">
+          <Button
+            v-if="data !== null"
+            icon="pi pi-pencil"
+            severity="warn"
+            rounded
+            @click="selectRow(data)"
+          ></Button>
+          <Button
+            v-if="data !== null"
+            icon="pi pi-trash"
+            severity="danger"
+            rounded
+          ></Button>
+          <Skeleton v-else shape="circle" size="3rem"></Skeleton>
+        </template>
+      </Column>
+      <template #footer>
+        <Paginator
+          v-model:first="page"
+          :rows="2"
+          :totalRecords="totalPages"
+          class="h-12"
+        ></Paginator>
+      </template>
+      <template #empty> Không tìm thấy danh mục trong CSDL. </template>
     </DataTable>
   </div>
 </template>

@@ -37,18 +37,25 @@ async function useGetFetch(
 }
 
 /**
- * This function is custom post fetch
+ * This function is custom post or patch fetch
  *
+ * @param {string} method The fetch method
  * @param {string} uri The fetch uri
  * @param {T} formData The fetch body
+ * @param {Headers} myHeaders The fetch headers
  * @returns {Promise<ApiResponse>} The response from sever
  */
-async function usePostFetch<T>(uri: string, formData: T): Promise<ApiResponse> {
+async function usePostOrPatchFetch<T>(
+  method: string,
+  uri: string,
+  formData: T,
+  myHeaders: Headers
+): Promise<ApiResponse> {
   try {
     const response = await fetch(uri, {
-      method: "POST",
+      method: method,
       body: JSON.stringify(formData),
-      headers: { Accept: "application/json" },
+      headers: myHeaders,
     });
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -83,6 +90,8 @@ async function useDeleteFetch(uri: string): Promise<{ isSuccessful: boolean }> {
         throw new Error(`Response status: ${response.status}`);
       }
       isSuccessful = true;
+    } else {
+      isSuccessful = true;
     }
   } catch (error) {
     console.error(error);
@@ -90,4 +99,4 @@ async function useDeleteFetch(uri: string): Promise<{ isSuccessful: boolean }> {
   return { isSuccessful };
 }
 
-export { useGetFetch, usePostFetch, useDeleteFetch };
+export { useGetFetch, usePostOrPatchFetch, useDeleteFetch };

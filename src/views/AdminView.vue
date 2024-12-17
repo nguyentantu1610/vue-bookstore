@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import Header from "../components/Header.vue";
-import { ref } from "vue";
 import SideBar from "../components/SideBar.vue";
 const router = useRouter();
 </script>

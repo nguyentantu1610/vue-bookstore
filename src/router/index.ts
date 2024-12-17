@@ -69,8 +69,8 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
   ],
-  linkActiveClass: 'border-zinc-900 border-l-2',
-  linkExactActiveClass: 'border-zinc-950 border-l-2',
+  linkActiveClass: "border-zinc-900 border-l-2",
+  linkExactActiveClass: "border-zinc-950 border-l-2",
 });
 
 router.beforeEach(async (to) => {
@@ -87,7 +87,11 @@ router.beforeEach(async (to) => {
   ) {
     return { name: "home" };
   }
-  if (to.meta.requiresAuth && !name.value && to.name !== "login") {
+  if (
+    (to.meta.requiresAuth || to.meta.requiresAdmin) &&
+    !name.value &&
+    to.name !== "login"
+  ) {
     return { name: "login" };
   }
   if (to.meta.requiresAdmin && !isAdmin.value) {

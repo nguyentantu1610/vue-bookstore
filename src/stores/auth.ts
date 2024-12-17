@@ -5,7 +5,7 @@ import { ref } from "vue";
 import {
   useDeleteFetch,
   useGetFetch,
-  usePostFetch,
+  usePostOrPatchFetch,
 } from "@/composables/custom-fetch";
 import { useToast } from "primevue";
 
@@ -33,7 +33,14 @@ export const useAuthStore = defineStore("auth", () => {
    */
   async function auth(uri: string, formData: Auth) {
     $reset();
-    const { data, status } = await usePostFetch<Auth>(uri, formData);
+    const headers = new Headers();
+    headers.append("Accept", "application/json");
+    const { data, status } = await usePostOrPatchFetch<Auth>(
+      "POST",
+      uri,
+      formData,
+      headers
+    );
     if (status >= 200 && status <= 299) {
       if (
         uri === "/api/send-register-code" ||
@@ -74,6 +81,8 @@ export const useAuthStore = defineStore("auth", () => {
   // Check user
   async function checkUser() {
     const token = localStorage.getItem("token");
+    name.value = "";
+    isAdmin.value = false;
     if (token) {
       const myHeaders = new Headers();
       myHeaders.append("Accept", "application/json");

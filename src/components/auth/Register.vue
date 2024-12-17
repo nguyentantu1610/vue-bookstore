@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { onUnmounted, ref } from "vue";
 import type Auth from "@/interfaces/auth";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
-import { onUnmounted, ref } from "vue";
 
 const formData = ref<Auth>({
   email: "",
@@ -10,11 +10,11 @@ const formData = ref<Auth>({
   password: "",
   password_confirmation: "",
 });
+const btnLabel = ref<string>("Gửi mã");
 const { authErrors } = storeToRefs(useAuthStore());
 const { auth, $reset } = useAuthStore();
 const loading = ref<boolean>(false);
 const btnLoading = ref<boolean>(false);
-const btnLabel = ref<string>("Gửi mã");
 
 async function register() {
   loading.value = true;
@@ -25,7 +25,7 @@ async function register() {
 async function sendVerificationCode() {
   let time: number = 0;
   btnLoading.value = true;
-  btnLabel.value = `Gửi lại 5s`;
+  btnLabel.value = "Gửi lại 5s";
   let countDown = setInterval(() => {
     btnLabel.value = `Gửi lại ${4 - time++}s`;
     if (time === 5) {
