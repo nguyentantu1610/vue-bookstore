@@ -16,6 +16,7 @@ declare module 'vue' {
     CategoryMain: typeof import('./src/components/admin/category/CategoryMain.vue')['default']
     CategoryManagement: typeof import('./src/components/admin/category/CategoryManagement.vue')['default']
     Column: typeof import('primevue/column')['default']
+    ConfirmPopup: typeof import('primevue/confirmpopup')['default']
     DataTable: typeof import('primevue/datatable')['default']
     Dialog: typeof import('primevue/dialog')['default']
     FileUpload: typeof import('primevue/fileupload')['default']

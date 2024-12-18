@@ -100,8 +100,8 @@ export const useAuthStore = defineStore("auth", () => {
 
   // Logout system
   async function logout() {
-    const { isSuccessful } = await useDeleteFetch("/api/logout");
-    if (isSuccessful) {
+    const { status } = await useDeleteFetch("/api/logout");
+    if (status >= 200 && status <= 299) {
       name.value = "";
       isAdmin.value = false;
       localStorage.removeItem("token");

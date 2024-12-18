@@ -5,7 +5,24 @@ type ApiResponse = {
 
 let data: any = {};
 let status: number = 400;
-let isSuccessful: boolean = false;
+
+/**
+ * This function to handle request & response type JSON
+ *
+ * @param {Headers} headers The fetch headers
+ * @param {Response} response The fetch response
+ */
+async function handleJSONResponse(headers: Headers, response: Response) {
+  const acceptType = headers.get("Accept");
+  if (acceptType && acceptType.includes("application/json")) {
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new TypeError("Oops, we haven't got JSON!");
+    }
+    data = await response.json();
+    status = response.status;
+  }
+}
 
 /**
  * This function is custom get fetch
@@ -18,15 +35,8 @@ async function useGetFetch(
   myHeaders: Headers
 ): Promise<ApiResponse> {
   try {
-    const response = await fetch(uri, {
-      headers: myHeaders,
-    });
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new TypeError("Oops, we haven't got JSON!");
-    }
-    data = await response.json();
-    status = response.status;
+    const response = await fetch(uri, { headers: myHeaders });
+    await handleJSONResponse(myHeaders, response);
     if (!response.ok) {
       throw new Error(data.message);
     }
@@ -57,12 +67,7 @@ async function usePostOrPatchFetch<T>(
       body: JSON.stringify(formData),
       headers: myHeaders,
     });
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new TypeError("Oops, we haven't got JSON!");
-    }
-    data = await response.json();
-    status = response.status;
+    await handleJSONResponse(myHeaders, response);
     if (!response.ok) {
       throw new Error(data.message);
     }
@@ -76,9 +81,9 @@ async function usePostOrPatchFetch<T>(
  * This function is custom delete fetch
  *
  * @param {string} uri The fetch uri
- * @returns {Promise<{ isSuccessful: boolean }>} The response from sever
+ * @returns {Promise<{ status: number }>} The response from sever
  */
-async function useDeleteFetch(uri: string): Promise<{ isSuccessful: boolean }> {
+async function useDeleteFetch(uri: string): Promise<{ status: number }> {
   try {
     const token = localStorage.getItem("token");
     if (token) {
@@ -86,17 +91,20 @@ async function useDeleteFetch(uri: string): Promise<{ isSuccessful: boolean }> {
         method: "DELETE",
         headers: { authorization: `Bearer ${token}` },
       });
+      status = response.status;
+      if (status === 401) {
+        localStorage.removeItem("token");
+      }
       if (!response.ok) {
         throw new Error(`Response status: ${response.status}`);
       }
-      isSuccessful = true;
-    } else {
-      isSuccessful = true;
+    } else if (uri === "/api/logout") {
+      status = 204;
     }
   } catch (error) {
     console.error(error);
   }
-  return { isSuccessful };
+  return { status };
 }
 
 export { useGetFetch, usePostOrPatchFetch, useDeleteFetch };

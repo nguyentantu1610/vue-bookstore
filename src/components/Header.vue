@@ -5,7 +5,7 @@ import { computed, ref } from "vue";
 
 const { isAdmin, name } = storeToRefs(useAuthStore());
 const { logout } = useAuthStore();
-const path = computed(() => (isAdmin.value ? "admin" : "home"));
+const path = computed<string>(() => (isAdmin.value ? "admin" : "home"));
 const searchQuery = ref<string>("");
 const isDarkMode = ref<boolean>(false);
 const tieredMenu = ref();

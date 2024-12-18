@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 import type Category from "@/interfaces/category";
 import { storeToRefs } from "pinia";
 import { useCategoryStore } from "@/stores/category";
+import { useConfirm } from "primevue/useconfirm";
 
 const showModal = ref<boolean>(false);
 const modalType = ref<boolean>(false);
@@ -20,11 +21,19 @@ const sortBtnIcon = ref("pi pi-sort-amount-down");
 const searchQuery = ref<string>("");
 const totalPages = ref<number>(0);
 const page = ref<number>(0);
-const { getCategories, createOrUpdateCategory, $reset } = useCategoryStore();
+const {
+  getCategories,
+  createOrUpdateCategory,
+  $reset,
+  deleteCategory,
+  getFile,
+  restoreCategory,
+} = useCategoryStore();
 const { results, categoryErrors } = storeToRefs(useCategoryStore());
 const initData: Category = { name: "", description: "" };
 const formData = ref<Category>(initData);
 const key = ref<string>("");
+const confirm = useConfirm();
 
 const onToggle = (val: any) => {
   selectedColumns.value = columns.value.filter((col) => val.includes(col));
@@ -92,6 +101,37 @@ async function handleSubmitForm() {
     await getData();
   }
 }
+
+const deleteOrRestoreCategory = (data: any, event: any) => {
+  const isDeleted = data.deleted_at !== null;
+  confirm.require({
+    target: event.currentTarget,
+    message: isDeleted
+      ? "Bạn có chắc là muốn khôi phục danh mục này?"
+      : "Bạn có chắc là muốn xoá danh mục này?",
+    icon: "pi pi-info-circle",
+    rejectProps: {
+      label: "Huỷ",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: isDeleted ? "Khôi phục" : "Xoá",
+      severity: isDeleted ? "" : "danger",
+    },
+    accept: async () => {
+      if (isDeleted) {
+        await restoreCategory(`/api/admin/categories/restore/${data.name}`);
+      } else {
+        await deleteCategory(`/api/admin/categories/${data.name}`);
+      }
+      await getData();
+    },
+    reject: () => {
+      console.log(`xoá ${data.name} thất bại~`);
+    },
+  });
+};
 </script>
 
 <template>
@@ -118,7 +158,12 @@ async function handleSubmitForm() {
           auto
           :chooseButtonProps="{ severity: 'secondary' }"
         />
-        <Button label="Xuất file" icon="pi pi-upload" severity="secondary" />
+        <Button
+          label="Xuất file"
+          icon="pi pi-upload"
+          severity="secondary"
+          @click="getFile"
+        />
       </template>
     </Toolbar>
     <Dialog
@@ -266,9 +311,10 @@ async function handleSubmitForm() {
           ></Button>
           <Button
             v-if="data !== null"
-            icon="pi pi-trash"
-            severity="danger"
+            :icon="data.deleted_at !== null ? 'pi pi-undo' : 'pi pi-trash'"
+            :severity="data.deleted_at !== null ? 'secondary' : 'danger'"
             rounded
+            @click="deleteOrRestoreCategory(data, $event)"
           ></Button>
           <Skeleton v-else shape="circle" size="3rem"></Skeleton>
         </template>

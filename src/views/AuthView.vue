@@ -4,10 +4,10 @@ import { useRoute } from "vue-router";
 
 const route = useRoute();
 
-const enter = computed(() => {
+const enter = computed<string>(() => {
   return route.meta.enter as string;
 });
-const leave = computed(() => {
+const leave = computed<string>(() => {
   return route.meta.leave as string;
 });
 </script>

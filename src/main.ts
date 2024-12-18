@@ -13,6 +13,7 @@ import { definePreset } from "@primevue/themes";
 import Aura from "@primevue/themes/aura";
 import FocusTrap from "primevue/focustrap";
 import ToastService from "primevue/toastservice";
+import ConfirmationService from 'primevue/confirmationservice';
 
 const Noir = definePreset(Aura, {
   semantic: {
@@ -81,5 +82,6 @@ app.use(PrimeVue, {
 });
 app.use(ToastService);
 app.directive("focustrap", FocusTrap);
+app.use(ConfirmationService);
 
 app.mount("#app");

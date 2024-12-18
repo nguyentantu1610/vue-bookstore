@@ -5,6 +5,7 @@ import Footer from "./components/Footer.vue";
 
 <template>
   <Toast />
+  <ConfirmPopup></ConfirmPopup>
   <ScrollTop />
   <RouterView />
   <Footer />
