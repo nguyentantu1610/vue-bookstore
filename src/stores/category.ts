@@ -22,6 +22,7 @@ export const useCategoryStore = defineStore("category", () => {
   function customHeaders(): Headers {
     const token = localStorage.getItem("token");
     const headers = new Headers();
+    headers.append("Content-Type", "application/json");
     headers.append("Authorization", `Bearer ${token}`);
     return headers;
   }
@@ -45,29 +46,49 @@ export const useCategoryStore = defineStore("category", () => {
   }
 
   /**
-   * This function to get file
+   * This function to export data to excel file
    *
    */
-  async function getFile() {
-    const token = localStorage.getItem("token");
-    const headers = new Headers();
-    headers.append("Authorization", `Bearer ${token}`);
-    const { status } = await useGetFetch(
-      "/api/admin/categories/export",
-      headers
-    );
-    if (status >= 200 && status <= 299) {
-      console.log("Success~");
-    }
-    if (status === 401) {
-      localStorage.removeItem("token");
+  async function exportData() {
+    if ("showDirectoryPicker" in window) {
+      const headers = customHeaders();
+      headers.append("Accept", "text/csv");
+      const { status, fileName, data } = await useGetFetch(
+        "/api/admin/categories/export",
+        headers
+      );
+      if (status >= 200 && status <= 299) {
+        const directoryHandle = await (window as any).showDirectoryPicker();
+        const fileHandle = await directoryHandle.getFileHandle(fileName, {
+          create: true,
+        });
+        const writer = await fileHandle.createWritable();
+        await writer.write(data);
+        await writer.close();
+        toast.add({
+          severity: "success",
+          summary: "Thành công",
+          detail: "Xuất file thành công~",
+          life: 3000,
+        });
+        return;
+      }
+      if (status === 401) {
+        localStorage.removeItem("token");
+      }
+      toast.add({
+        severity: "error",
+        summary: "Lỗi",
+        detail: "Xuất file thất bại",
+        life: 3000,
+      });
     }
   }
 
   /**
    * This function to create or update category
    *
-   * @param {string} method (false is create and vice versa)
+   * @param {string} method The fetch method (false is create and vice versa)
    * @param {string} uri The fetch uri
    * @param {Category} formData The fetch body
    */
@@ -106,6 +127,44 @@ export const useCategoryStore = defineStore("category", () => {
   }
 
   /**
+   * This function to import excel file
+   *
+   * @param {any} formData The fetch body
+   */
+  async function importFile(formData: any) {
+    const headers = customHeaders();
+    headers.set("Accept", "application/json");
+    headers.delete("Content-Type");
+    try {
+      const response = await fetch("/api/admin/categories/import", {
+        method: "POST",
+        headers: headers,
+        body: formData,
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (response.status === 422) {
+          toast.add({
+            severity: "error",
+            summary: "Lỗi",
+            detail: data.message,
+            life: 3000,
+          });
+        }
+        throw new Error(data.message);
+      }
+      toast.add({
+        severity: "success",
+        summary: "Thành công",
+        detail: data.message,
+        life: 3000,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  /**
    * This function to delete category
    *
    * @param uri The fetch uri
@@ -135,8 +194,7 @@ export const useCategoryStore = defineStore("category", () => {
    * @param {string} uri The fetch uri
    */
   async function restoreCategory(uri: string) {
-    $reset();
-    const { data, status } = await usePostOrPatchFetch<Category>(
+    const { status } = await usePostOrPatchFetch<Category>(
       "PATCH",
       uri,
       initData,
@@ -150,9 +208,6 @@ export const useCategoryStore = defineStore("category", () => {
         life: 3000,
       });
       return;
-    }
-    if (status === 422) {
-      categoryErrors.value = data.errors;
     }
     toast.add({
       severity: "error",
@@ -169,7 +224,8 @@ export const useCategoryStore = defineStore("category", () => {
     createOrUpdateCategory,
     deleteCategory,
     $reset,
-    getFile,
+    exportData,
     restoreCategory,
+    importFile,
   };
 });

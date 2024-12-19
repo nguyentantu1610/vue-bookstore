@@ -1,26 +1,38 @@
-type ApiResponse = {
-  data: any;
-  status: number;
-};
-
 let data: any = {};
 let status: number = 400;
+let fileName: string = "file_name";
 
 /**
- * This function to handle request & response type JSON
+ * This function to handle response from server
  *
  * @param {Headers} headers The fetch headers
  * @param {Response} response The fetch response
  */
-async function handleJSONResponse(headers: Headers, response: Response) {
+async function handleResponse(headers: Headers, response: Response) {
+  status = response.status;
   const acceptType = headers.get("Accept");
+  const contentType = response.headers.get("Content-Type");
   if (acceptType && acceptType.includes("application/json")) {
-    const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       throw new TypeError("Oops, we haven't got JSON!");
     }
     data = await response.json();
-    status = response.status;
+    if (!response.ok) {
+      throw new Error(data.message);
+    }
+  }
+  if (acceptType && acceptType.includes("text/csv")) {
+    if (!contentType || !contentType.includes("text/csv")) {
+      throw new TypeError("Oops, we haven't got CSV!");
+    }
+    const disposition = response.headers.get("Content-Disposition");
+    if (disposition && disposition.includes("attachment")) {
+      fileName = disposition.slice(disposition.indexOf("filename=") + 9);
+    }
+    data = await response.blob();
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
   }
 }
 
@@ -28,49 +40,43 @@ async function handleJSONResponse(headers: Headers, response: Response) {
  * This function is custom get fetch
  *
  * @param {string} uri The fetch uri
- * @returns {Promise<ApiResponse>} The response from sever
+ * @returns {Promise<{ data: any; status: number }>} The response type
  */
 async function useGetFetch(
   uri: string,
   myHeaders: Headers
-): Promise<ApiResponse> {
+): Promise<{ data: any; status: number; fileName: string }> {
   try {
     const response = await fetch(uri, { headers: myHeaders });
-    await handleJSONResponse(myHeaders, response);
-    if (!response.ok) {
-      throw new Error(data.message);
-    }
+    await handleResponse(myHeaders, response);
   } catch (error) {
     console.error(error);
   }
-  return { data, status };
+  return { data, status, fileName };
 }
 
 /**
  * This function is custom post or patch fetch
  *
- * @param {string} method The fetch method
+ * @param {string} myMethod The fetch method
  * @param {string} uri The fetch uri
  * @param {T} formData The fetch body
  * @param {Headers} myHeaders The fetch headers
- * @returns {Promise<ApiResponse>} The response from sever
+ * @returns {Promise<{ data: any; status: number }>} The response from server
  */
 async function usePostOrPatchFetch<T>(
-  method: string,
+  myMethod: string,
   uri: string,
   formData: T,
   myHeaders: Headers
-): Promise<ApiResponse> {
+): Promise<{ data: any; status: number }> {
   try {
     const response = await fetch(uri, {
-      method: method,
+      method: myMethod,
       body: JSON.stringify(formData),
       headers: myHeaders,
     });
-    await handleJSONResponse(myHeaders, response);
-    if (!response.ok) {
-      throw new Error(data.message);
-    }
+    await handleResponse(myHeaders, response);
   } catch (error) {
     console.error(error);
   }
@@ -81,7 +87,7 @@ async function usePostOrPatchFetch<T>(
  * This function is custom delete fetch
  *
  * @param {string} uri The fetch uri
- * @returns {Promise<{ status: number }>} The response from sever
+ * @returns {Promise<{ status: number }>} The response type
  */
 async function useDeleteFetch(uri: string): Promise<{ status: number }> {
   try {
@@ -89,13 +95,16 @@ async function useDeleteFetch(uri: string): Promise<{ status: number }> {
     if (token) {
       const response = await fetch(uri, {
         method: "DELETE",
-        headers: { authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
       });
       status = response.status;
-      if (status === 401) {
-        localStorage.removeItem("token");
-      }
       if (!response.ok) {
+        if (status === 401) {
+          localStorage.removeItem("token");
+        }
         throw new Error(`Response status: ${response.status}`);
       }
     } else if (uri === "/api/logout") {

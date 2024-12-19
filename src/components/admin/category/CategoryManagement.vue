@@ -26,8 +26,9 @@ const {
   createOrUpdateCategory,
   $reset,
   deleteCategory,
-  getFile,
+  exportData,
   restoreCategory,
+  importFile,
 } = useCategoryStore();
 const { results, categoryErrors } = storeToRefs(useCategoryStore());
 const initData: Category = { name: "", description: "" };
@@ -132,6 +133,12 @@ const deleteOrRestoreCategory = (data: any, event: any) => {
     },
   });
 };
+
+async function onFileSelect(event: any) {
+  const formData = new FormData();
+  formData.append("file", event.files[0]);
+  await importFile(formData);
+}
 </script>
 
 <template>
@@ -149,20 +156,22 @@ const deleteOrRestoreCategory = (data: any, event: any) => {
       <template #end>
         <FileUpload
           mode="basic"
-          accept="image/*"
+          name="file"
+          accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           :maxFileSize="1000000"
-          label="Chọn file"
+          label="Import"
           customUpload
           chooseLabel="Chọn file"
           class="mr-2"
           auto
           :chooseButtonProps="{ severity: 'secondary' }"
+          @select="onFileSelect"
         />
         <Button
           label="Xuất file"
           icon="pi pi-upload"
           severity="secondary"
-          @click="getFile"
+          @click="exportData"
         />
       </template>
     </Toolbar>

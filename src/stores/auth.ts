@@ -25,6 +25,14 @@ export const useAuthStore = defineStore("auth", () => {
     authErrors.value = initData;
   }
 
+  // Custom headers for fetch
+  function customHeaders(): Headers {
+    const headers = new Headers();
+    headers.append("Accept", "application/json");
+    headers.append("Content-Type", "application/json");
+    return headers;
+  }
+
   /**
    * This function perform login/register/forgot password/ send code
    *
@@ -33,13 +41,11 @@ export const useAuthStore = defineStore("auth", () => {
    */
   async function auth(uri: string, formData: Auth) {
     $reset();
-    const headers = new Headers();
-    headers.append("Accept", "application/json");
     const { data, status } = await usePostOrPatchFetch<Auth>(
       "POST",
       uri,
       formData,
-      headers
+      customHeaders()
     );
     if (status >= 200 && status <= 299) {
       if (
@@ -84,10 +90,9 @@ export const useAuthStore = defineStore("auth", () => {
     name.value = "";
     isAdmin.value = false;
     if (token) {
-      const myHeaders = new Headers();
-      myHeaders.append("Accept", "application/json");
-      myHeaders.append("Authorization", `Bearer ${token}`);
-      const { data, status } = await useGetFetch("/api/check-user", myHeaders);
+      const headers = customHeaders();
+      headers.append("Authorization", `Bearer ${token}`);
+      const { data, status } = await useGetFetch("/api/check-user", headers);
       if (status >= 200 && status <= 299) {
         name.value = data.name;
         isAdmin.value = data.isAdmin;
@@ -109,7 +114,7 @@ export const useAuthStore = defineStore("auth", () => {
       toast.add({
         severity: "success",
         summary: "Thành công",
-        detail: "Đăng xuất thành công",
+        detail: "Đăng xuất thành công~",
         life: 3000,
       });
       return;
