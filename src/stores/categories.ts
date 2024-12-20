@@ -8,7 +8,7 @@ import { defineStore } from "pinia";
 import { useToast } from "primevue";
 import { ref } from "vue";
 
-export const useCategoryStore = defineStore("category", () => {
+export const useCategoriesStore = defineStore("categories", () => {
   const results = ref();
   const initData: Category = { name: "", description: "" };
   const categoryErrors = ref<Category>(initData);

@@ -55,10 +55,16 @@ const router = createRouter({
       meta: { requiresAdmin: true },
       children: [
         {
-          path: "category",
-          name: "category",
+          path: "categories",
+          name: "categories",
           component: () =>
-            import("../components/admin/category/CategoryManagement.vue"),
+            import("../components/admin/categories/CategoryManagement.vue"),
+        },
+        {
+          path: "users",
+          name: "users",
+          component: () =>
+            import("../components/admin/users/UserManagement.vue"),
         },
       ],
     },

@@ -14,7 +14,7 @@ declare module 'vue' {
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
     CategoryMain: typeof import('./src/components/admin/category/CategoryMain.vue')['default']
-    CategoryManagement: typeof import('./src/components/admin/category/CategoryManagement.vue')['default']
+    CategoryManagement: typeof import('./src/components/admin/categories/CategoryManagement.vue')['default']
     Column: typeof import('primevue/column')['default']
     ConfirmPopup: typeof import('primevue/confirmpopup')['default']
     DataTable: typeof import('primevue/datatable')['default']
@@ -52,6 +52,7 @@ declare module 'vue' {
     Toast: typeof import('primevue/toast')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
+    UserManagement: typeof import('./src/components/admin/users/UserManagement.vue')['default']
   }
   export interface ComponentCustomProperties {
     FocusTrap: typeof import('primevue/focustrap')['default']

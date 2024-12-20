@@ -3,16 +3,27 @@ import { ref } from "vue";
 
 const items = ref([
   {
+    label: "Hợp tác",
+    items: [
+      {
+        label: "Khách hàng",
+        icon: "pi pi-users",
+        route: "/admin/users",
+      },
+      {
+        label: "Nhà cung cấp",
+        icon: "pi pi-building",
+        route: "/admin/suppliers",
+      },
+    ],
+  },
+  {
     label: "Sản phẩm",
     items: [
       {
         label: "Danh mục",
         icon: "pi pi-tag",
-        route: "/admin/category",
-      },
-      {
-        label: "Search",
-        icon: "pi pi-search",
+        route: "/admin/categories",
       },
     ],
   },

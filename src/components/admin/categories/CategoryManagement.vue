@@ -2,7 +2,7 @@
 import { ref, watchEffect } from "vue";
 import type Category from "@/interfaces/category";
 import { storeToRefs } from "pinia";
-import { useCategoryStore } from "@/stores/category";
+import { useCategoriesStore } from "@/stores/categories";
 import { useConfirm } from "primevue/useconfirm";
 
 const showModal = ref<boolean>(false);
@@ -29,8 +29,8 @@ const {
   exportData,
   restoreCategory,
   importFile,
-} = useCategoryStore();
-const { results, categoryErrors } = storeToRefs(useCategoryStore());
+} = useCategoriesStore();
+const { results, categoryErrors } = storeToRefs(useCategoriesStore());
 const initData: Category = { name: "", description: "" };
 const formData = ref<Category>(initData);
 const key = ref<string>("");
@@ -263,7 +263,7 @@ async function onFileSelect(event: any) {
               optionLabel="header"
               @update:modelValue="onToggle"
               display="chip"
-              placeholder="Select Columns"
+              placeholder="Chọn cột"
               class="max-w-60"
             />
           </div>
