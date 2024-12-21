@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
-import type Category from "@/interfaces/category";
+import type Supplier from "@/interfaces/supplier";
 import { storeToRefs } from "pinia";
-import { useCategoriesStore } from "@/stores/categories";
+import { useSuppliersStore } from "@/stores/suppliers";
 import { useConfirm } from "primevue/useconfirm";
 
 const showModal = ref<boolean>(false);
 const modalType = ref<boolean>(false);
 const loading = ref<boolean>(false);
-const categories = ref<Array<Category> | null>(new Array<Category>(2));
+const suppliers = ref<Array<Supplier> | null>(new Array<Supplier>(2));
 const columns = ref([
-  { field: "description", header: "Mô tả" },
-  { field: "created_at", header: "Ngày tạo" },
-  { field: "updated_at", header: "Ngày cập nhật" },
+  { field: "contact_name", header: "Tên liên lạc" },
+  { field: "phone_number", header: "SĐT" },
+  { field: "address", header: "Địa chỉ" },
+  { field: "created_at", header: "Ngày hợp tác" },
   { field: "deleted_at", header: "Tình trạng" },
 ]);
 const selectedColumns = ref(columns.value);
@@ -22,17 +23,22 @@ const searchQuery = ref<string>("");
 const totalPages = ref<number>(0);
 const page = ref<number>(0);
 const {
-  getCategories,
-  createOrUpdateCategory,
+  getSuppliers,
+  createOrUpdateSupplier,
+  deleteSupplier,
   $reset,
-  deleteCategory,
   exportData,
-  restoreCategory,
+  restoreSupplier,
   importFile,
-} = useCategoriesStore();
-const { results, categoryErrors } = storeToRefs(useCategoriesStore());
-const initData: Category = { name: "", description: "" };
-const formData = ref<Category>(initData);
+} = useSuppliersStore();
+const { results, supplierErrors } = storeToRefs(useSuppliersStore());
+const initData: Supplier = {
+  supplier_name: "",
+  contact_name: "",
+  phone_number: "",
+  address: "",
+};
+const formData = ref<Supplier>(initData);
 const key = ref<string>("");
 const confirm = useConfirm();
 
@@ -51,18 +57,18 @@ function changeSort() {
 }
 
 async function getData() {
-  categories.value = new Array<Category>(2);
-  await getCategories(
-    `/api/admin/categories?sort_type=${sortType.value}&page=${
+  suppliers.value = new Array<Supplier>(2);
+  await getSuppliers(
+    `/api/admin/suppliers?sort_type=${sortType.value}&page=${
       page.value / 2 + 1
     }&search_query=${searchQuery.value}`
   );
   setTimeout(() => {
     if (results.value !== null) {
-      categories.value = results.value.data;
+      suppliers.value = results.value.data;
       totalPages.value = results.value.total;
     } else {
-      categories.value = null;
+      suppliers.value = null;
       totalPages.value = 0;
     }
   }, 1000);
@@ -77,25 +83,29 @@ function showDialog(type: boolean) {
 }
 
 const selectRow = (data: any) => {
-  key.value = data.name;
-  formData.value.name = data.name;
-  formData.value.description = data.description;
+  key.value = data.id;
+  formData.value.supplier_name = data.supplier_name;
+  formData.value.contact_name = data.contact_name;
+  formData.value.phone_number = data.phone_number;
+  formData.value.address = data.address;
   showDialog(true);
 };
 
 async function handleSubmitForm() {
   loading.value = true;
-  await createOrUpdateCategory(
+  await createOrUpdateSupplier(
     modalType.value ? "PATCH" : "POST",
     modalType.value
-      ? `/api/admin/categories/${key.value}`
-      : "/api/admin/categories",
+      ? `/api/admin/suppliers/${key.value}`
+      : "/api/admin/suppliers",
     formData.value
   );
   loading.value = false;
   if (
-    categoryErrors.value.name === "" &&
-    categoryErrors.value.description === ""
+    supplierErrors.value.supplier_name === "" &&
+    supplierErrors.value.contact_name === "" &&
+    supplierErrors.value.phone_number === "" &&
+    supplierErrors.value.address === ""
   ) {
     showModal.value = false;
     formData.value = initData;
@@ -103,13 +113,13 @@ async function handleSubmitForm() {
   }
 }
 
-const deleteOrRestoreCategory = (data: any, event: any) => {
+const deleteOrRestoreSupplier = (data: any, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
     message: isDeleted
-      ? "Bạn có chắc là muốn khôi phục danh mục này?"
-      : "Bạn có chắc là muốn xoá danh mục này?",
+      ? "Bạn có chắc là muốn khôi phục mục này?"
+      : "Bạn có chắc là muốn xoá mục này?",
     icon: "pi pi-info-circle",
     rejectProps: {
       label: "Huỷ",
@@ -122,14 +132,14 @@ const deleteOrRestoreCategory = (data: any, event: any) => {
     },
     accept: async () => {
       if (isDeleted) {
-        await restoreCategory(`/api/admin/categories/restore/${data.name}`);
+        await restoreSupplier(`/api/admin/suppliers/restore/${data.id}`);
       } else {
-        await deleteCategory(`/api/admin/categories/${data.name}`);
+        await deleteSupplier(`/api/admin/suppliers/${data.id}`);
       }
       await getData();
     },
     reject: () => {
-      console.log(`xoá ${data.name} thất bại~`);
+      console.log(`xoá ${data.supplier_name} thất bại~`);
     },
   });
 };
@@ -143,7 +153,7 @@ async function onFileSelect(event: any) {
 
 <template>
   <div class="pt-6 pl-10">
-    <h1 class="text-3xl font-medium mb-6">Danh Mục Sản Phẩm</h1>
+    <h1 class="text-3xl font-medium mb-6">Danh Sách Nhà Cung Cấp</h1>
     <Toolbar class="mb-6">
       <template #start>
         <Button
@@ -178,7 +188,7 @@ async function onFileSelect(event: any) {
     <Dialog
       v-model:visible="showModal"
       modal
-      :header="modalType ? 'Cập nhật danh mục' : 'Thêm mới danh mục'"
+      :header="modalType ? 'Cập nhật thông tin nhà cung cấp' : 'Thêm mới nhà cung cấp'"
       :style="{ width: '25rem' }"
     >
       <form @submit.prevent="handleSubmitForm" class="flex flex-col">
@@ -186,50 +196,100 @@ async function onFileSelect(event: any) {
           <FloatLabel variant="on">
             <InputText
               type="text"
-              id="name"
+              id="supplier-name"
               fluid
               autofocus
               maxlength="50"
-              v-model="formData.name"
+              v-model="formData.supplier_name"
               :invalid="
-                categoryErrors.name !== '' && categoryErrors.name !== undefined
+                supplierErrors.supplier_name !== '' && supplierErrors.supplier_name !== undefined
               "
               :disabled="loading"
             />
-            <label for="name">Tên</label>
+            <label for="supplier-name">Tên nhà cung cấp</label>
           </FloatLabel>
           <Message
-            v-if="categoryErrors.name"
+            v-if="supplierErrors.supplier_name"
             size="small"
             severity="error"
             variant="simple"
           >
-            {{ categoryErrors.name[0] }}
+            {{ supplierErrors.supplier_name[0] }}
           </Message>
         </div>
         <div class="self-center mb-6 w-3/4">
           <FloatLabel variant="on">
             <InputText
               type="text"
-              id="description"
+              id="contact-name"
               fluid
               maxlength="50"
-              v-model="formData.description"
+              v-model="formData.contact_name"
               :invalid="
-                categoryErrors.description !== '' &&
-                categoryErrors.description !== undefined
+                supplierErrors.contact_name !== '' &&
+                supplierErrors.contact_name !== undefined
               "
               :disabled="loading"
             />
-            <label for="description">Mô tả</label>
+            <label for="contact-name">Tên liên lạc</label>
           </FloatLabel>
           <Message
-            v-if="categoryErrors.description"
+            v-if="supplierErrors.contact_name"
             size="small"
             severity="error"
             variant="simple"
           >
-            {{ categoryErrors.description[0] }}
+            {{ supplierErrors.contact_name[0] }}
+          </Message>
+        </div>
+        <div class="self-center mb-6 w-3/4">
+          <FloatLabel variant="on">
+            <InputMask 
+              id="phone-number"
+              fluid
+              maxlength="50"
+              v-model="formData.phone_number"
+              mask="0999999999"
+              :invalid="
+                supplierErrors.phone_number !== '' &&
+                supplierErrors.phone_number !== undefined
+              "
+              :disabled="loading"
+            />
+            <label for="phone-number">Số điện thoại</label>
+          </FloatLabel>
+          <Message
+            v-if="supplierErrors.phone_number"
+            size="small"
+            severity="error"
+            variant="simple"
+          >
+            {{ supplierErrors.phone_number[0] }}
+          </Message>
+        </div>
+        <div class="self-center mb-6 w-3/4">
+          <FloatLabel variant="on">
+            <InputText
+              type="text"
+              id="address"
+              fluid
+              maxlength="255"
+              v-model="formData.address"
+              :invalid="
+                supplierErrors.address !== '' &&
+                supplierErrors.address !== undefined
+              "
+              :disabled="loading"
+            />
+            <label for="address">Địa chỉ</label>
+          </FloatLabel>
+          <Message
+            v-if="supplierErrors.address"
+            size="small"
+            severity="error"
+            variant="simple"
+          >
+            {{ supplierErrors.address[0] }}
           </Message>
         </div>
         <div class="flex justify-end gap-2">
@@ -244,7 +304,7 @@ async function onFileSelect(event: any) {
       </form>
     </Dialog>
     <DataTable
-      :value="categories"
+      :value="suppliers"
       scrollable
       scrollHeight="400px"
       showGridlines
@@ -284,10 +344,10 @@ async function onFileSelect(event: any) {
           </div>
         </div>
       </template>
-      <Column field="name" header="Tên">
+      <Column field="supplier_name" header="Tên nhà cung cấp">
         <template #body="{ data }">
           <Skeleton v-if="data === null"></Skeleton>
-          <p v-else>{{ data.name }}</p>
+          <p v-else>{{ data.supplier_name }}</p>
         </template>
       </Column>
       <Column
@@ -322,7 +382,7 @@ async function onFileSelect(event: any) {
             :icon="data.deleted_at !== null ? 'pi pi-undo' : 'pi pi-trash'"
             :severity="data.deleted_at !== null ? 'secondary' : 'danger'"
             rounded
-            @click="deleteOrRestoreCategory(data, $event)"
+            @click="deleteOrRestoreSupplier(data, $event)"
           ></Button>
           <Skeleton v-else shape="circle" size="3rem"></Skeleton>
         </template>
@@ -335,7 +395,7 @@ async function onFileSelect(event: any) {
           class="h-12"
         ></Paginator>
       </template>
-      <template #empty> Không tìm thấy danh mục trong CSDL. </template>
+      <template #empty> Không tìm thấy thông tin nhà cung cấp trong CSDL. </template>
     </DataTable>
   </div>
 </template>

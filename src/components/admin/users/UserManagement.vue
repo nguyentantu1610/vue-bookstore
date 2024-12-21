@@ -62,8 +62,8 @@ const deleteOrRestoreUser = (data: any, event: any) => {
   confirm.require({
     target: event.currentTarget,
     message: isDeleted
-      ? "Bạn có chắc là muốn khôi phục người dùng này?"
-      : "Bạn có chắc là muốn xoá người dùng này?",
+      ? "Bạn có chắc là muốn khôi phục tài khoản này?"
+      : "Bạn có chắc là muốn ngừng kích hoạt tài khoản này?",
     icon: "pi pi-info-circle",
     rejectProps: {
       label: "Huỷ",
@@ -71,7 +71,7 @@ const deleteOrRestoreUser = (data: any, event: any) => {
       outlined: true,
     },
     acceptProps: {
-      label: isDeleted ? "Khôi phục" : "Xoá",
+      label: isDeleted ? "Khôi phục" : "Ngừng kích hoạt",
       severity: isDeleted ? "" : "danger",
     },
     accept: async () => {
@@ -91,7 +91,7 @@ const deleteOrRestoreUser = (data: any, event: any) => {
 
 <template>
   <div class="pt-6 pl-10">
-    <h1 class="text-3xl font-medium mb-6">Danh sách người dùng</h1>
+    <h1 class="text-3xl font-medium mb-6">Danh Sách Người Dùng</h1>
     <Toolbar class="mb-6">
       <template #start>
         <Button

@@ -3,24 +3,25 @@ import {
   useGetFetch,
   usePostOrPatchFetch,
 } from "@/composables/custom-fetch";
-import type User from "@/interfaces/user";
+import type Supplier from "@/interfaces/supplier";
 import { defineStore } from "pinia";
 import { useToast } from "primevue";
 import { ref } from "vue";
 
-export const useUsersStore = defineStore("users", () => {
+export const useSuppliersStore = defineStore("suppliers", () => {
   const results = ref();
-  const initData: User = {
-    id: "",
-    name: "",
-    email: "",
-    email_verified_at: "",
-    password_reseted_at: "",
-    address: "",
+  const initData: Supplier = {
+    supplier_name: "",
+    contact_name: "",
     phone_number: "",
-    deleted_at: "",
+    address: "",
   };
+  const supplierErrors = ref<Supplier>(initData);
   const toast = useToast();
+
+  function $reset() {
+    supplierErrors.value = initData;
+  }
 
   // Custom headers for fetch
   function customHeaders(): Headers {
@@ -32,11 +33,11 @@ export const useUsersStore = defineStore("users", () => {
   }
 
   /**
-   * This function to fetch users
+   * This function to fetch suppliers
    *
    * @param uri The fetch uri
    */
-  async function getUsers(uri: string) {
+  async function getSuppliers(uri: string) {
     const headers = customHeaders();
     headers.append("Accept", "application/json");
     const { data, status } = await useGetFetch(uri, headers);
@@ -58,7 +59,7 @@ export const useUsersStore = defineStore("users", () => {
       const headers = customHeaders();
       headers.append("Accept", "text/csv");
       const { status, fileName, data } = await useGetFetch(
-        "/api/admin/users/export",
+        "/api/admin/suppliers/export",
         headers
       );
       if (status >= 200 && status <= 299) {
@@ -90,11 +91,90 @@ export const useUsersStore = defineStore("users", () => {
   }
 
   /**
-   * This function to delete user
+   * This function to create or update supplier
+   *
+   * @param {string} method The fetch method (false is create and vice versa)
+   * @param {string} uri The fetch uri
+   * @param {Supplier} formData The fetch body
+   */
+  async function createOrUpdateSupplier(
+    method: string,
+    uri: string,
+    formData: Supplier
+  ) {
+    $reset();
+    const headers = customHeaders();
+    headers.append("Accept", "application/json");
+    const { data, status } = await usePostOrPatchFetch<Supplier>(
+      method,
+      uri,
+      formData,
+      headers
+    );
+    if (status >= 200 && status <= 299) {
+      toast.add({
+        severity: "success",
+        summary: "Thành công",
+        detail: data.message,
+        life: 3000,
+      });
+      return;
+    }
+    if (status === 422) {
+      supplierErrors.value = data.errors;
+    }
+    toast.add({
+      severity: "error",
+      summary: "Lỗi",
+      detail: data.message,
+      life: 3000,
+    });
+  }
+
+  /**
+   * This function to import excel file
+   *
+   * @param {any} formData The fetch body
+   */
+  async function importFile(formData: any) {
+    const headers = customHeaders();
+    headers.set("Accept", "application/json");
+    headers.delete("Content-Type");
+    try {
+      const response = await fetch("/api/admin/suppliers/import", {
+        method: "POST",
+        headers: headers,
+        body: formData,
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (response.status === 422) {
+          toast.add({
+            severity: "error",
+            summary: "Lỗi",
+            detail: data.message,
+            life: 3000,
+          });
+        }
+        throw new Error(data.message);
+      }
+      toast.add({
+        severity: "success",
+        summary: "Thành công",
+        detail: data.message,
+        life: 3000,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  /**
+   * This function to delete supplier
    *
    * @param uri The fetch uri
    */
-  async function deleteUser(uri: string) {
+  async function deleteSupplier(uri: string) {
     const { status } = await useDeleteFetch(uri);
     if (status >= 200 && status <= 299) {
       toast.add({
@@ -114,12 +194,12 @@ export const useUsersStore = defineStore("users", () => {
   }
 
   /**
-   * This function to restore user
+   * This function to restore supplier
    *
    * @param {string} uri The fetch uri
    */
-  async function restoreUser(uri: string) {
-    const { status } = await usePostOrPatchFetch<User>(
+  async function restoreSupplier(uri: string) {
+    const { status } = await usePostOrPatchFetch<Supplier>(
       "PATCH",
       uri,
       initData,
@@ -144,9 +224,13 @@ export const useUsersStore = defineStore("users", () => {
 
   return {
     results,
-    getUsers,
-    deleteUser,
+    supplierErrors,
+    getSuppliers,
+    createOrUpdateSupplier,
+    deleteSupplier,
+    $reset,
     exportData,
-    restoreUser,
+    restoreSupplier,
+    importFile,
   };
 });
