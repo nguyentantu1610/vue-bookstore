@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
-import type User from "@/interfaces/user";
+import type Product from "@/interfaces/product";
 import { storeToRefs } from "pinia";
-import { useUsersStore } from "@/stores/users";
+import { useProductsStore } from "@/stores/products";
 import { useConfirm } from "primevue/useconfirm";
 
-const users = ref<Array<User> | null>(new Array<User>(2));
+const products = ref<Array<Product> | null>(new Array<Product>(2));
 const columns = ref([
-  { field: "name", header: "Tên người dùng" },
-  { field: "address", header: "Địa chỉ" },
-  { field: "phone_number", header: "SĐT" },
-  { field: "email_verified_at", header: "Ngày tham gia" },
+  { field: "author", header: "Tác giả" },
+  { field: "translator", header: "Người dịch" },
+  { field: "supplier_name", header: "Nhà cung cấp" },
+  { field: "publisher_name", header: "Nhà xuất bản" },
+  { field: "publish_year", header: "Năm xuất bản" },
+  { field: "category_name", header: "Tên danh mục" },
+  { field: "weight", header: "Khối lượng" },
+  { field: "cover_size", header: "Bìa" },
+  { field: "pages", header: "Số trang" },
+  { field: "price", header: "Giá" },
+  { field: "description", header: "Mô tả" },
+  { field: "created_at", header: "Ngày tạo" },
+  { field: "updated_at", header: "Ngày cập nhật" },
   { field: "deleted_at", header: "Tình trạng" },
 ]);
 const selectedColumns = ref(columns.value);
@@ -19,8 +28,9 @@ const sortBtnIcon = ref("pi pi-sort-amount-down");
 const searchQuery = ref<string>("");
 const totalPages = ref<number>(0);
 const page = ref<number>(0);
-const { getUsers, deleteUser, exportData, restoreUser } = useUsersStore();
-const { results } = storeToRefs(useUsersStore());
+const { getProducts, deleteProduct, exportData, restoreProduct, importFile } =
+  useProductsStore();
+const { results } = storeToRefs(useProductsStore());
 const confirm = useConfirm();
 
 const onToggle = (val: any) => {
@@ -38,34 +48,38 @@ function changeSort() {
 }
 
 async function getData() {
-  users.value = new Array<User>(2);
+  products.value = new Array<Product>(2);
   totalPages.value = 0;
-  await getUsers(
-    `/api/admin/users?sort_type=${sortType.value}&page=${
-      searchQuery.value ? 1 : page.value / 2 + 1
+  await getProducts(
+    `/api/admin/products?sort_type=${sortType.value}&page=${
+      page.value / 2 + 1
     }&search_query=${searchQuery.value}`
   );
   setTimeout(() => {
     if (results.value !== null) {
-      users.value = results.value.data;
+      products.value = results.value.data;
       totalPages.value = results.value.total;
     } else if (page.value != 1) {
       page.value = 1;
     } else {
-      users.value = null;
+      products.value = null;
     }
   }, 1000);
 }
 
 const watcher = watchEffect(async () => await getData());
 
-const deleteOrRestoreUser = (data: any, event: any) => {
+const selectRow = (data: any) => {
+  //   key.value = data.id;
+};
+
+const deleteOrRestoreProduct = (data: any, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
     message: isDeleted
-      ? "Bạn có chắc là muốn khôi phục tài khoản này?"
-      : "Bạn có chắc là muốn ngừng kích hoạt tài khoản này?",
+      ? "Bạn có chắc là muốn khôi phục sản phẩm này?"
+      : "Bạn có chắc là muốn xoá sản phẩm này?",
     icon: "pi pi-info-circle",
     rejectProps: {
       label: "Huỷ",
@@ -73,14 +87,14 @@ const deleteOrRestoreUser = (data: any, event: any) => {
       outlined: true,
     },
     acceptProps: {
-      label: isDeleted ? "Khôi phục" : "Ngừng kích hoạt",
+      label: isDeleted ? "Khôi phục" : "Xoá",
       severity: isDeleted ? "" : "danger",
     },
     accept: async () => {
       if (isDeleted) {
-        await restoreUser(`/api/admin/users/restore/${data.id}`);
+        await restoreProduct(`/api/admin/products/restore/${data.product_id}`);
       } else {
-        await deleteUser(`/api/admin/users/${data.id}`);
+        await deleteProduct(`/api/admin/products/${data.product_id}`);
       }
       await getData();
     },
@@ -89,13 +103,35 @@ const deleteOrRestoreUser = (data: any, event: any) => {
     },
   });
 };
+
+async function onFileSelect(event: any) {
+  const formData = new FormData();
+  formData.append("file", event.files[0]);
+  await importFile(formData);
+}
 </script>
 
 <template>
   <div class="pt-6 pl-10 pr-10 overflow-auto basis-4/5">
-    <h1 class="text-3xl font-medium mb-6">Danh Sách Người Dùng</h1>
+    <h1 class="text-3xl font-medium mb-6">Danh Sách Sản Phẩm</h1>
     <Toolbar class="mb-6">
       <template #start>
+        <Button label="Thêm mới" icon="pi pi-plus" class="mr-2" />
+      </template>
+      <template #end>
+        <FileUpload
+          mode="basic"
+          name="file"
+          accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          :maxFileSize="1000000"
+          label="Import"
+          customUpload
+          chooseLabel="Chọn file"
+          class="mr-2"
+          auto
+          :chooseButtonProps="{ severity: 'secondary' }"
+          @select="onFileSelect"
+        />
         <Button
           label="Xuất file"
           icon="pi pi-upload"
@@ -104,9 +140,8 @@ const deleteOrRestoreUser = (data: any, event: any) => {
         />
       </template>
     </Toolbar>
-
     <DataTable
-      :value="users"
+      :value="products"
       scrollable
       scrollHeight="400px"
       showGridlines
@@ -130,7 +165,7 @@ const deleteOrRestoreUser = (data: any, event: any) => {
           <div class="flex justify-end gap-2 grow">
             <Button
               :icon="sortBtnIcon"
-              label="Email"
+              label="Tên"
               iconPos="right"
               variant="text"
               @click="changeSort"
@@ -145,10 +180,40 @@ const deleteOrRestoreUser = (data: any, event: any) => {
           </div>
         </div>
       </template>
-      <Column field="email" header="Email">
+      <Column class="w-24 space-x-2">
+        <template #body="{ data }">
+          <Button
+            v-if="data !== null"
+            icon="pi pi-pencil"
+            severity="warn"
+            rounded
+            @click="selectRow(data)"
+          ></Button>
+          <Button
+            v-if="data !== null"
+            :icon="data.deleted_at !== null ? 'pi pi-undo' : 'pi pi-trash'"
+            :severity="data.deleted_at !== null ? 'secondary' : 'danger'"
+            rounded
+            @click="deleteOrRestoreProduct(data, $event)"
+          ></Button>
+          <Skeleton v-else shape="circle" size="3rem"></Skeleton>
+        </template>
+      </Column>
+      <Column field="name" header="Tên sản phẩm">
         <template #body="{ data }">
           <Skeleton v-if="data === null"></Skeleton>
-          <p v-else>{{ data.email }}</p>
+          <p v-else>{{ data.name }}</p>
+        </template>
+      </Column>
+      <Column field="urls" header="Hình ảnh">
+        <template #body="{ data }">
+          <Skeleton v-if="data === null"></Skeleton>
+          <img
+            v-else
+            :src="data.urls ? data.urls.split(',')[0] : '/default_image.png'"
+            :alt="data.name"
+            class="w-24 rounded"
+          />
         </template>
       </Column>
       <Column
@@ -169,18 +234,6 @@ const deleteOrRestoreUser = (data: any, event: any) => {
           </div>
         </template>
       </Column>
-      <Column class="w-24 space-x-2">
-        <template #body="{ data }">
-          <Button
-            v-if="data !== null"
-            :icon="data.deleted_at !== null ? 'pi pi-undo' : 'pi pi-trash'"
-            :severity="data.deleted_at !== null ? 'secondary' : 'danger'"
-            rounded
-            @click="deleteOrRestoreUser(data, $event)"
-          ></Button>
-          <Skeleton v-else shape="circle" size="3rem"></Skeleton>
-        </template>
-      </Column>
       <template #footer>
         <Paginator
           v-model:first="page"
@@ -189,7 +242,9 @@ const deleteOrRestoreUser = (data: any, event: any) => {
           class="h-12"
         ></Paginator>
       </template>
-      <template #empty> Không tìm thấy người dùng trong CSDL. </template>
+      <template #empty>
+        Không tìm thấy thông tin sản phẩm trong CSDL.
+      </template>
     </DataTable>
   </div>
 </template>

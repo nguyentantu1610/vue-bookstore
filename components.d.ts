@@ -41,6 +41,7 @@ declare module 'vue' {
     Panel: typeof import('primevue/panel')['default']
     PanelMenu: typeof import('primevue/panelmenu')['default']
     Password: typeof import('primevue/password')['default']
+    ProductManagement: typeof import('./src/components/admin/products/ProductManagement.vue')['default']
     Register: typeof import('./src/components/auth/Register.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

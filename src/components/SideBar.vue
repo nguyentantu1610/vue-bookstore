@@ -25,13 +25,18 @@ const items = ref([
         icon: "pi pi-tag",
         route: "/admin/categories",
       },
+      {
+        label: "Sách",
+        icon: "pi pi-book",
+        route: "/admin/products",
+      },
     ],
   },
 ]);
 </script>
 
 <template>
-  <Menu :model="items" class="pt-4 pl-10 pr-5 basis-80 overflow-x-auto">
+  <Menu :model="items" class="pt-4 pl-10 pr-5 basis-1/5 overflow-x-auto">
     <template #submenulabel="{ item }">
       <span class="text-primary font-bold">{{ item.label }}</span>
     </template>

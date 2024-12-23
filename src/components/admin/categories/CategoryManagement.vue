@@ -52,6 +52,7 @@ function changeSort() {
 
 async function getData() {
   categories.value = new Array<Category>(2);
+  totalPages.value = 0;
   await getCategories(
     `/api/admin/categories?sort_type=${sortType.value}&page=${
       page.value / 2 + 1
@@ -61,9 +62,10 @@ async function getData() {
     if (results.value !== null) {
       categories.value = results.value.data;
       totalPages.value = results.value.total;
+    } else if (page.value != 1) {
+      page.value = 1;
     } else {
       categories.value = null;
-      totalPages.value = 0;
     }
   }, 1000);
 }
@@ -142,7 +144,7 @@ async function onFileSelect(event: any) {
 </script>
 
 <template>
-  <div class="pt-6 pl-10">
+  <div class="pt-6 pl-10 pr-10 overflow-auto basis-4/5">
     <h1 class="text-3xl font-medium mb-6">Danh Mục Sản Phẩm</h1>
     <Toolbar class="mb-6">
       <template #start>
@@ -251,7 +253,6 @@ async function onFileSelect(event: any) {
       resizableColumns
       columnResizeMode="expand"
       tableStyle="min-width: 50rem"
-      class="overflow-y-hidden"
     >
       <template #header>
         <div class="flex items-center gap-2">
@@ -263,7 +264,7 @@ async function onFileSelect(event: any) {
               @update:modelValue="onToggle"
               display="chip"
               placeholder="Chọn cột"
-              class="max-w-60"
+              class="max-w-96"
             />
           </div>
           <div class="flex justify-end gap-2 grow">

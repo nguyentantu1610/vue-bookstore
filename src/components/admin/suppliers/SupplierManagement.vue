@@ -58,18 +58,20 @@ function changeSort() {
 
 async function getData() {
   suppliers.value = new Array<Supplier>(2);
+  totalPages.value = 0;
   await getSuppliers(
     `/api/admin/suppliers?sort_type=${sortType.value}&page=${
-      page.value / 2 + 1
+      searchQuery.value ? 1 : page.value / 2 + 1
     }&search_query=${searchQuery.value}`
   );
   setTimeout(() => {
     if (results.value !== null) {
       suppliers.value = results.value.data;
       totalPages.value = results.value.total;
+    } else if (page.value != 1) {
+      page.value = 1;
     } else {
       suppliers.value = null;
-      totalPages.value = 0;
     }
   }, 1000);
 }
@@ -152,7 +154,7 @@ async function onFileSelect(event: any) {
 </script>
 
 <template>
-  <div class="pt-6 pl-10">
+  <div class="pt-6 pl-10 pr-10 overflow-auto basis-4/5">
     <h1 class="text-3xl font-medium mb-6">Danh Sách Nhà Cung Cấp</h1>
     <Toolbar class="mb-6">
       <template #start>
@@ -188,7 +190,9 @@ async function onFileSelect(event: any) {
     <Dialog
       v-model:visible="showModal"
       modal
-      :header="modalType ? 'Cập nhật thông tin nhà cung cấp' : 'Thêm mới nhà cung cấp'"
+      :header="
+        modalType ? 'Cập nhật thông tin nhà cung cấp' : 'Thêm mới nhà cung cấp'
+      "
       :style="{ width: '25rem' }"
     >
       <form @submit.prevent="handleSubmitForm" class="flex flex-col">
@@ -202,7 +206,8 @@ async function onFileSelect(event: any) {
               maxlength="50"
               v-model="formData.supplier_name"
               :invalid="
-                supplierErrors.supplier_name !== '' && supplierErrors.supplier_name !== undefined
+                supplierErrors.supplier_name !== '' &&
+                supplierErrors.supplier_name !== undefined
               "
               :disabled="loading"
             />
@@ -244,7 +249,7 @@ async function onFileSelect(event: any) {
         </div>
         <div class="self-center mb-6 w-3/4">
           <FloatLabel variant="on">
-            <InputMask 
+            <InputMask
               id="phone-number"
               fluid
               maxlength="50"
@@ -311,7 +316,6 @@ async function onFileSelect(event: any) {
       resizableColumns
       columnResizeMode="expand"
       tableStyle="min-width: 50rem"
-      class="overflow-y-hidden"
     >
       <template #header>
         <div class="flex items-center gap-2">
@@ -323,7 +327,7 @@ async function onFileSelect(event: any) {
               @update:modelValue="onToggle"
               display="chip"
               placeholder="Chọn cột"
-              class="max-w-60"
+              class="max-w-96"
             />
           </div>
           <div class="flex justify-end gap-2 grow">
@@ -395,7 +399,9 @@ async function onFileSelect(event: any) {
           class="h-12"
         ></Paginator>
       </template>
-      <template #empty> Không tìm thấy thông tin nhà cung cấp trong CSDL. </template>
+      <template #empty>
+        Không tìm thấy thông tin nhà cung cấp trong CSDL.
+      </template>
     </DataTable>
   </div>
 </template>
