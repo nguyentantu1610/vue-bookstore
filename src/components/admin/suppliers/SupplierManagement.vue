@@ -6,7 +6,6 @@ import { useSuppliersStore } from "@/stores/suppliers";
 import { useConfirm } from "primevue/useconfirm";
 
 const showModal = ref<boolean>(false);
-const modalType = ref<boolean>(false);
 const loading = ref<boolean>(false);
 const suppliers = ref<Array<Supplier> | null>(new Array<Supplier>(2));
 const columns = ref([
@@ -32,14 +31,13 @@ const {
   importFile,
 } = useSuppliersStore();
 const { results, supplierErrors } = storeToRefs(useSuppliersStore());
-const initData: Supplier = {
+const formData = ref<Supplier>({
+  id: "",
   supplier_name: "",
   contact_name: "",
   phone_number: "",
   address: "",
-};
-const formData = ref<Supplier>(initData);
-const key = ref<string>("");
+});
 const confirm = useConfirm();
 
 const onToggle = (val: any) => {
@@ -61,15 +59,15 @@ async function getData() {
   totalPages.value = 0;
   await getSuppliers(
     `/api/admin/suppliers?sort_type=${sortType.value}&page=${
-      searchQuery.value ? 1 : page.value / 2 + 1
+      page.value / 2 + 1
     }&search_query=${searchQuery.value}`
   );
   setTimeout(() => {
     if (results.value !== null) {
       suppliers.value = results.value.data;
       totalPages.value = results.value.total;
-    } else if (page.value != 1) {
-      page.value = 1;
+    } else if (page.value != 0) {
+      page.value = 0;
     } else {
       suppliers.value = null;
     }
@@ -78,27 +76,22 @@ async function getData() {
 
 const watcher = watchEffect(async () => await getData());
 
-function showDialog(type: boolean) {
+function showDialog() {
   $reset();
   showModal.value = true;
-  modalType.value = type;
 }
 
-const selectRow = (data: any) => {
-  key.value = data.id;
-  formData.value.supplier_name = data.supplier_name;
-  formData.value.contact_name = data.contact_name;
-  formData.value.phone_number = data.phone_number;
-  formData.value.address = data.address;
-  showDialog(true);
+const selectRow = (data: Supplier) => {
+  formData.value = data;
+  showDialog();
 };
 
 async function handleSubmitForm() {
   loading.value = true;
   await createOrUpdateSupplier(
-    modalType.value ? "PATCH" : "POST",
-    modalType.value
-      ? `/api/admin/suppliers/${key.value}`
+    formData.value.id ? "PATCH" : "POST",
+    formData.value.id
+      ? `/api/admin/suppliers/${formData.value.id}`
       : "/api/admin/suppliers",
     formData.value
   );
@@ -109,13 +102,19 @@ async function handleSubmitForm() {
     supplierErrors.value.phone_number === "" &&
     supplierErrors.value.address === ""
   ) {
+    formData.value = {
+      id: "",
+      supplier_name: "",
+      contact_name: "",
+      phone_number: "",
+      address: "",
+    };
     showModal.value = false;
-    formData.value = initData;
     await getData();
   }
 }
 
-const deleteOrRestoreSupplier = (data: any, event: any) => {
+const deleteOrRestoreSupplier = (data: Supplier, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
@@ -133,11 +132,9 @@ const deleteOrRestoreSupplier = (data: any, event: any) => {
       severity: isDeleted ? "" : "danger",
     },
     accept: async () => {
-      if (isDeleted) {
-        await restoreSupplier(`/api/admin/suppliers/restore/${data.id}`);
-      } else {
-        await deleteSupplier(`/api/admin/suppliers/${data.id}`);
-      }
+      isDeleted
+        ? await restoreSupplier(`/api/admin/suppliers/restore/${data.id}`)
+        : await deleteSupplier(`/api/admin/suppliers/${data.id}`);
       await getData();
     },
     reject: () => {
@@ -162,7 +159,7 @@ async function onFileSelect(event: any) {
           label="Thêm mới"
           icon="pi pi-plus"
           class="mr-2"
-          @click="showDialog(false)"
+          @click="showDialog()"
         />
       </template>
       <template #end>
@@ -191,7 +188,7 @@ async function onFileSelect(event: any) {
       v-model:visible="showModal"
       modal
       :header="
-        modalType ? 'Cập nhật thông tin nhà cung cấp' : 'Thêm mới nhà cung cấp'
+        formData.id ? 'Cập nhật thông tin nhà cung cấp' : 'Thêm mới nhà cung cấp'
       "
       :style="{ width: '25rem' }"
     >
@@ -339,9 +336,7 @@ async function onFileSelect(event: any) {
               @click="changeSort"
             />
             <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
+              <InputIcon><i class="pi pi-search" /></InputIcon>
               <InputText placeholder="Tìm kiếm" v-model="searchQuery" />
             </IconField>
             <Button icon="pi pi-refresh" rounded raised @click="getData" />

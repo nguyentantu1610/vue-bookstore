@@ -78,6 +78,12 @@ const router = createRouter({
           component: () =>
             import("../components/admin/products/ProductManagement.vue"),
         },
+        {
+          path: "product-detail/:id?",
+          name: "product-detail",
+          component: () =>
+            import("../components/admin/products/ProductDetail.vue"),
+        },
       ],
     },
     {

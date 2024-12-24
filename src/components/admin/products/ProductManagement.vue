@@ -59,8 +59,8 @@ async function getData() {
     if (results.value !== null) {
       products.value = results.value.data;
       totalPages.value = results.value.total;
-    } else if (page.value != 1) {
-      page.value = 1;
+    } else if (page.value != 0) {
+      page.value = 0;
     } else {
       products.value = null;
     }
@@ -69,11 +69,7 @@ async function getData() {
 
 const watcher = watchEffect(async () => await getData());
 
-const selectRow = (data: any) => {
-  //   key.value = data.id;
-};
-
-const deleteOrRestoreProduct = (data: any, event: any) => {
+const deleteOrRestoreProduct = (data: Product, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
@@ -91,11 +87,9 @@ const deleteOrRestoreProduct = (data: any, event: any) => {
       severity: isDeleted ? "" : "danger",
     },
     accept: async () => {
-      if (isDeleted) {
-        await restoreProduct(`/api/admin/products/restore/${data.product_id}`);
-      } else {
-        await deleteProduct(`/api/admin/products/${data.product_id}`);
-      }
+      isDeleted
+        ? await restoreProduct(`/api/admin/products/restore/${data.product_id}`)
+        : await deleteProduct(`/api/admin/products/${data.product_id}`);
       await getData();
     },
     reject: () => {
@@ -116,7 +110,13 @@ async function onFileSelect(event: any) {
     <h1 class="text-3xl font-medium mb-6">Danh Sách Sản Phẩm</h1>
     <Toolbar class="mb-6">
       <template #start>
-        <Button label="Thêm mới" icon="pi pi-plus" class="mr-2" />
+        <Button
+          as="router-link"
+          label="Thêm mới"
+          icon="pi pi-plus"
+          class="mr-2"
+          :to="{ name: 'product-detail' }"
+        />
       </template>
       <template #end>
         <FileUpload
@@ -171,9 +171,7 @@ async function onFileSelect(event: any) {
               @click="changeSort"
             />
             <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
+              <InputIcon><i class="pi pi-search" /></InputIcon>
               <InputText placeholder="Tìm kiếm" v-model="searchQuery" />
             </IconField>
             <Button icon="pi pi-refresh" rounded raised @click="getData" />
@@ -184,10 +182,11 @@ async function onFileSelect(event: any) {
         <template #body="{ data }">
           <Button
             v-if="data !== null"
+            as="router-link"
             icon="pi pi-pencil"
             severity="warn"
             rounded
-            @click="selectRow(data)"
+            :to="{ name: 'product-detail', params: { id: data.product_id } }"
           ></Button>
           <Button
             v-if="data !== null"

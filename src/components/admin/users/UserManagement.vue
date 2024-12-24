@@ -42,15 +42,15 @@ async function getData() {
   totalPages.value = 0;
   await getUsers(
     `/api/admin/users?sort_type=${sortType.value}&page=${
-      searchQuery.value ? 1 : page.value / 2 + 1
+      page.value / 2 + 1
     }&search_query=${searchQuery.value}`
   );
   setTimeout(() => {
     if (results.value !== null) {
       users.value = results.value.data;
       totalPages.value = results.value.total;
-    } else if (page.value != 1) {
-      page.value = 1;
+    } else if (page.value != 0) {
+      page.value = 0;
     } else {
       users.value = null;
     }
@@ -59,7 +59,7 @@ async function getData() {
 
 const watcher = watchEffect(async () => await getData());
 
-const deleteOrRestoreUser = (data: any, event: any) => {
+const deleteOrRestoreUser = (data: User, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
@@ -77,11 +77,9 @@ const deleteOrRestoreUser = (data: any, event: any) => {
       severity: isDeleted ? "" : "danger",
     },
     accept: async () => {
-      if (isDeleted) {
-        await restoreUser(`/api/admin/users/restore/${data.id}`);
-      } else {
-        await deleteUser(`/api/admin/users/${data.id}`);
-      }
+      isDeleted
+        ? await restoreUser(`/api/admin/users/restore/${data.id}`)
+        : await deleteUser(`/api/admin/users/${data.id}`);
       await getData();
     },
     reject: () => {
@@ -104,7 +102,6 @@ const deleteOrRestoreUser = (data: any, event: any) => {
         />
       </template>
     </Toolbar>
-
     <DataTable
       :value="users"
       scrollable
@@ -136,9 +133,7 @@ const deleteOrRestoreUser = (data: any, event: any) => {
               @click="changeSort"
             />
             <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
+              <InputIcon><i class="pi pi-search" /></InputIcon>
               <InputText placeholder="Tìm kiếm" v-model="searchQuery" />
             </IconField>
             <Button icon="pi pi-refresh" rounded raised @click="getData" />

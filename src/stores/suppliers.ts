@@ -11,6 +11,7 @@ import { ref } from "vue";
 export const useSuppliersStore = defineStore("suppliers", () => {
   const results = ref();
   const initData: Supplier = {
+    id: "",
     supplier_name: "",
     contact_name: "",
     phone_number: "",
@@ -41,10 +42,9 @@ export const useSuppliersStore = defineStore("suppliers", () => {
     const headers = customHeaders();
     headers.append("Accept", "application/json");
     const { data, status } = await useGetFetch(uri, headers);
-    results.value = null;
-    if (status >= 200 && status <= 299) {
-      results.value = data.data;
-    }
+    status >= 200 && status <= 299
+      ? (results.value = data.data)
+      : (results.value = null);
     if (status === 401) {
       localStorage.removeItem("token");
     }
@@ -176,21 +176,19 @@ export const useSuppliersStore = defineStore("suppliers", () => {
    */
   async function deleteSupplier(uri: string) {
     const { status } = await useDeleteFetch(uri);
-    if (status >= 200 && status <= 299) {
-      toast.add({
-        severity: "success",
-        summary: "Thành công",
-        detail: "Ngừng kích hoạt thành công~",
-        life: 3000,
-      });
-      return;
-    }
-    toast.add({
-      severity: "error",
-      summary: "Lỗi",
-      detail: "Ngừng kích hoạt thất bại",
-      life: 3000,
-    });
+    status >= 200 && status <= 299
+      ? toast.add({
+          severity: "success",
+          summary: "Thành công",
+          detail: "Ngừng kích hoạt thành công~",
+          life: 3000,
+        })
+      : toast.add({
+          severity: "error",
+          summary: "Lỗi",
+          detail: "Ngừng kích hoạt thất bại",
+          life: 3000,
+        });
   }
 
   /**
@@ -205,21 +203,19 @@ export const useSuppliersStore = defineStore("suppliers", () => {
       initData,
       customHeaders()
     );
-    if (status >= 200 && status <= 299) {
-      toast.add({
-        severity: "success",
-        summary: "Thành công",
-        detail: "Khôi phục thành công~",
-        life: 3000,
-      });
-      return;
-    }
-    toast.add({
-      severity: "error",
-      summary: "Lỗi",
-      detail: "Khôi phục thất bại",
-      life: 3000,
-    });
+    status >= 200 && status <= 299
+      ? toast.add({
+          severity: "success",
+          summary: "Thành công",
+          detail: "Khôi phục thành công~",
+          life: 3000,
+        })
+      : toast.add({
+          severity: "error",
+          summary: "Lỗi",
+          detail: "Khôi phục thất bại",
+          life: 3000,
+        });
   }
 
   return {

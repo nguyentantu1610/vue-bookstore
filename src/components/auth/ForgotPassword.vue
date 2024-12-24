@@ -42,9 +42,7 @@ onUnmounted(() => $reset());
 
 <template>
   <Card v-focustrap class="basis-2/3 xl:basis-1/4 lg:basis-1/3 md:basis-2/5">
-    <template #title>
-      <h1 class="text-center">Quên mật khẩu</h1>
-    </template>
+    <template #title><h1 class="text-center">Quên mật khẩu</h1></template>
     <template #content>
       <form
         @submit.prevent="forgotPassword"
@@ -152,7 +150,7 @@ onUnmounted(() => $reset());
         <div>
           <Button type="submit" label="Thay đổi" fluid :loading="loading" />
         </div>
-        <hr />
+        <Divider><b>OR</b></Divider>
         <div class="text-center">
           Đã có tài khoản?
           <RouterLink :to="{ name: 'login' }" class="text-zinc-950 font-medium">

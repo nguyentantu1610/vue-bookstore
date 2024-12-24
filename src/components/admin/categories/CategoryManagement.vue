@@ -6,7 +6,6 @@ import { useCategoriesStore } from "@/stores/categories";
 import { useConfirm } from "primevue/useconfirm";
 
 const showModal = ref<boolean>(false);
-const modalType = ref<boolean>(false);
 const loading = ref<boolean>(false);
 const categories = ref<Array<Category> | null>(new Array<Category>(2));
 const columns = ref([
@@ -31,9 +30,7 @@ const {
   importFile,
 } = useCategoriesStore();
 const { results, categoryErrors } = storeToRefs(useCategoriesStore());
-const initData: Category = { name: "", description: "" };
-const formData = ref<Category>(initData);
-const key = ref<string>("");
+const formData = ref<Category>({ id: "", name: "", description: "" });
 const confirm = useConfirm();
 
 const onToggle = (val: any) => {
@@ -62,8 +59,8 @@ async function getData() {
     if (results.value !== null) {
       categories.value = results.value.data;
       totalPages.value = results.value.total;
-    } else if (page.value != 1) {
-      page.value = 1;
+    } else if (page.value != 0) {
+      page.value = 0;
     } else {
       categories.value = null;
     }
@@ -72,40 +69,34 @@ async function getData() {
 
 const watcher = watchEffect(async () => await getData());
 
-function showDialog(type: boolean) {
+function showDialog() {
   $reset();
   showModal.value = true;
-  modalType.value = type;
 }
 
-const selectRow = (data: any) => {
-  key.value = data.name;
-  formData.value.name = data.name;
-  formData.value.description = data.description;
-  showDialog(true);
+const selectRow = (data: Category) => {
+  formData.value = data;
+  showDialog();
 };
 
 async function handleSubmitForm() {
   loading.value = true;
   await createOrUpdateCategory(
-    modalType.value ? "PATCH" : "POST",
-    modalType.value
-      ? `/api/admin/categories/${key.value}`
+    formData.value.id ? "PATCH" : "POST",
+    formData.value.id
+      ? `/api/admin/categories/${formData.value.id}`
       : "/api/admin/categories",
     formData.value
   );
   loading.value = false;
-  if (
-    categoryErrors.value.name === "" &&
-    categoryErrors.value.description === ""
-  ) {
+  if (categoryErrors.value.name === "" && categoryErrors.value.name === "") {
+    formData.value = { id: "", name: "", description: "" };
     showModal.value = false;
-    formData.value = initData;
     await getData();
   }
 }
 
-const deleteOrRestoreCategory = (data: any, event: any) => {
+const deleteOrRestoreCategory = (data: Category, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
@@ -123,11 +114,9 @@ const deleteOrRestoreCategory = (data: any, event: any) => {
       severity: isDeleted ? "" : "danger",
     },
     accept: async () => {
-      if (isDeleted) {
-        await restoreCategory(`/api/admin/categories/restore/${data.name}`);
-      } else {
-        await deleteCategory(`/api/admin/categories/${data.name}`);
-      }
+      isDeleted
+        ? await restoreCategory(`/api/admin/categories/restore/${data.id}`)
+        : await deleteCategory(`/api/admin/categories/${data.id}`);
       await getData();
     },
     reject: () => {
@@ -152,7 +141,7 @@ async function onFileSelect(event: any) {
           label="Thêm mới"
           icon="pi pi-plus"
           class="mr-2"
-          @click="showDialog(false)"
+          @click="showDialog()"
         />
       </template>
       <template #end>
@@ -180,7 +169,7 @@ async function onFileSelect(event: any) {
     <Dialog
       v-model:visible="showModal"
       modal
-      :header="modalType ? 'Cập nhật danh mục' : 'Thêm mới danh mục'"
+      :header="formData.id ? 'Cập nhật danh mục' : 'Thêm mới danh mục'"
       :style="{ width: '25rem' }"
     >
       <form @submit.prevent="handleSubmitForm" class="flex flex-col">
@@ -276,9 +265,7 @@ async function onFileSelect(event: any) {
               @click="changeSort"
             />
             <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
+              <InputIcon><i class="pi pi-search" /></InputIcon>
               <InputText placeholder="Tìm kiếm" v-model="searchQuery" />
             </IconField>
             <Button icon="pi pi-refresh" rounded raised @click="getData" />

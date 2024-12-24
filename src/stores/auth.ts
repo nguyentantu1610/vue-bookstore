@@ -56,11 +56,9 @@ export const useAuthStore = defineStore("auth", () => {
       }
       if (uri === "/api/login") {
         localStorage.setItem("token", data.token);
-        if (!data.isAdmin) {
-          router.push({ name: "home" });
-        } else {
-          router.push({ name: "admin" });
-        }
+        !data.isAdmin
+          ? router.push({ name: "home" })
+          : router.push({ name: "admin" });
       }
       if (uri === "/api/register" || uri === "/api/forgot-password") {
         router.push({ name: "login" });

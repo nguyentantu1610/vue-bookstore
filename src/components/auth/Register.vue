@@ -42,9 +42,7 @@ onUnmounted(() => $reset());
 
 <template>
   <Card v-focustrap class="basis-2/3 xl:basis-1/4 lg:basis-1/3 md:basis-2/5">
-    <template #title>
-      <h1 class="text-center">Đăng ký</h1>
-    </template>
+    <template #title><h1 class="text-center">Đăng ký</h1></template>
     <template #content>
       <form @submit.prevent="register" class="w-11/12 ml-5 my-4 space-y-4">
         <div>
@@ -149,7 +147,7 @@ onUnmounted(() => $reset());
         <div>
           <Button type="submit" label="Đăng ký" fluid :loading="loading" />
         </div>
-        <hr />
+        <Divider><b>OR</b></Divider>
         <div class="text-center">
           Đã có tài khoản?
           <RouterLink :to="{ name: 'login' }" class="text-zinc-950 font-medium">

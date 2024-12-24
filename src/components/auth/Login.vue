@@ -4,10 +4,7 @@ import type Auth from "@/interfaces/auth";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
 
-const formData = ref<Auth>({
-  email: "",
-  password: "",
-});
+const formData = ref<Auth>({ email: "", password: "" });
 const { authErrors } = storeToRefs(useAuthStore());
 const { auth, $reset } = useAuthStore();
 const loading = ref<boolean>(false);
@@ -23,9 +20,7 @@ onUnmounted(() => $reset());
 
 <template>
   <Card v-focustrap class="basis-2/3 xl:basis-1/4 lg:basis-1/3 md:basis-2/5">
-    <template #title>
-      <h1 class="text-center">Đăng nhập</h1>
-    </template>
+    <template #title><h1 class="text-center">Đăng nhập</h1></template>
     <template #content>
       <form @submit.prevent="login" class="w-11/12 ml-5 my-4 space-y-4">
         <div>
@@ -85,7 +80,7 @@ onUnmounted(() => $reset());
             Quên mật khẩu?
           </RouterLink>
         </div>
-        <hr />
+        <Divider><b>OR</b></Divider>
         <div>
           <Button
             as="router-link"

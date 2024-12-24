@@ -10,7 +10,7 @@ import { ref } from "vue";
 
 export const useCategoriesStore = defineStore("categories", () => {
   const results = ref();
-  const initData: Category = { name: "", description: "" };
+  const initData: Category = { id: "", name: "", description: "" };
   const categoryErrors = ref<Category>(initData);
   const toast = useToast();
 
@@ -36,10 +36,9 @@ export const useCategoriesStore = defineStore("categories", () => {
     const headers = customHeaders();
     headers.append("Accept", "application/json");
     const { data, status } = await useGetFetch(uri, headers);
-    results.value = null;
-    if (status >= 200 && status <= 299) {
-      results.value = data.data;
-    }
+    status >= 200 && status <= 299
+      ? (results.value = data.data)
+      : (results.value = null);
     if (status === 401) {
       localStorage.removeItem("token");
     }
@@ -171,21 +170,19 @@ export const useCategoriesStore = defineStore("categories", () => {
    */
   async function deleteCategory(uri: string) {
     const { status } = await useDeleteFetch(uri);
-    if (status >= 200 && status <= 299) {
-      toast.add({
-        severity: "success",
-        summary: "Thành công",
-        detail: "Xoá danh mục thành công~",
-        life: 3000,
-      });
-      return;
-    }
-    toast.add({
-      severity: "error",
-      summary: "Lỗi",
-      detail: "Xoá danh mục thất bại",
-      life: 3000,
-    });
+    status >= 200 && status <= 299
+      ? toast.add({
+          severity: "success",
+          summary: "Thành công",
+          detail: "Xoá danh mục thành công~",
+          life: 3000,
+        })
+      : toast.add({
+          severity: "error",
+          summary: "Lỗi",
+          detail: "Xoá danh mục thất bại",
+          life: 3000,
+        });
   }
 
   /**
@@ -200,21 +197,19 @@ export const useCategoriesStore = defineStore("categories", () => {
       initData,
       customHeaders()
     );
-    if (status >= 200 && status <= 299) {
-      toast.add({
-        severity: "success",
-        summary: "Thành công",
-        detail: "Khôi phục thành công~",
-        life: 3000,
-      });
-      return;
-    }
-    toast.add({
-      severity: "error",
-      summary: "Lỗi",
-      detail: "Khôi phục thất bại",
-      life: 3000,
-    });
+    status >= 200 && status <= 299
+      ? toast.add({
+          severity: "success",
+          summary: "Thành công",
+          detail: "Khôi phục thành công~",
+          life: 3000,
+        })
+      : toast.add({
+          severity: "error",
+          summary: "Lỗi",
+          detail: "Khôi phục thất bại",
+          life: 3000,
+        });
   }
 
   return {
