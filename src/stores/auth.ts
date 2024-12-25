@@ -34,7 +34,7 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   /**
-   * This function perform login/register/forgot password/ send code
+   * This function perform login/register/forgot password/send code
    *
    * @param {string} uri The uri
    * @param {Auth} formData The form input data
@@ -48,12 +48,9 @@ export const useAuthStore = defineStore("auth", () => {
       customHeaders()
     );
     if (status >= 200 && status <= 299) {
-      if (
-        uri === "/api/send-register-code" ||
-        uri === "/api/send-forgot-code"
-      ) {
-        console.log(data.code);
-      }
+      uri === "/api/send-register-code" || uri === "/api/send-forgot-code"
+        ? console.log(data.code)
+        : "";
       if (uri === "/api/login") {
         localStorage.setItem("token", data.token);
         !data.isAdmin
@@ -63,17 +60,14 @@ export const useAuthStore = defineStore("auth", () => {
       if (uri === "/api/register" || uri === "/api/forgot-password") {
         router.push({ name: "login" });
       }
-      toast.add({
+      return toast.add({
         severity: "success",
         summary: "Thành công",
         detail: data.message,
         life: 3000,
       });
-      return;
     }
-    if (status === 422) {
-      authErrors.value = data.errors;
-    }
+    status === 422 ? authErrors.value = data.errors : "";
     toast.add({
       severity: "error",
       summary: "Lỗi",
@@ -95,9 +89,7 @@ export const useAuthStore = defineStore("auth", () => {
         name.value = data.name;
         isAdmin.value = data.isAdmin;
       }
-      if (status === 401) {
-        localStorage.removeItem("token");
-      }
+      status === 401 ? localStorage.removeItem("token") : "";
     }
   }
 
@@ -109,13 +101,12 @@ export const useAuthStore = defineStore("auth", () => {
       isAdmin.value = false;
       localStorage.removeItem("token");
       router.push({ name: "login" });
-      toast.add({
+      return toast.add({
         severity: "success",
         summary: "Thành công",
         detail: "Đăng xuất thành công~",
         life: 3000,
       });
-      return;
     }
     toast.add({
       severity: "error",

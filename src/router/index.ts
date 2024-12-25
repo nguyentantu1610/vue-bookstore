@@ -105,9 +105,9 @@ router.beforeEach(async (to) => {
   if (
     !to.meta.requiresAuth &&
     name.value &&
-    (to.name == "login" ||
-      to.name == "register" ||
-      to.name == "forgot-password")
+    (to.name === "login" ||
+      to.name === "register" ||
+      to.name === "forgot-password")
   ) {
     return { name: "home" };
   }
