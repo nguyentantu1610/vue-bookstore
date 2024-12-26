@@ -5,6 +5,18 @@ import { storeToRefs } from "pinia";
 import { useCategoriesStore } from "@/stores/categories";
 import { useConfirm } from "primevue/useconfirm";
 
+const {
+  getCategories,
+  createOrUpdateCategory,
+  $reset,
+  deleteCategory,
+  exportData,
+  restoreCategory,
+  importFile,
+} = useCategoriesStore();
+const { results, categoryErrors } = storeToRefs(useCategoriesStore());
+const confirm = useConfirm();
+// Init data
 const showModal = ref<boolean>(false);
 const loading = ref<boolean>(false);
 const categories = ref<Array<Category> | null>(new Array<Category>(2));
@@ -20,23 +32,14 @@ const sortBtnIcon = ref("pi pi-sort-amount-down");
 const searchQuery = ref<string>("");
 const totalPages = ref<number>(0);
 const page = ref<number>(0);
-const {
-  getCategories,
-  createOrUpdateCategory,
-  $reset,
-  deleteCategory,
-  exportData,
-  restoreCategory,
-  importFile,
-} = useCategoriesStore();
-const { results, categoryErrors } = storeToRefs(useCategoriesStore());
 const formData = ref<Category>({ id: "", name: "", description: "" });
-const confirm = useConfirm();
 
+// Show/hide columns
 const onToggle = (val: any) => {
   selectedColumns.value = columns.value.filter((col) => val.includes(col));
 };
 
+// Change sort type/icon
 function changeSort() {
   if (sortBtnIcon.value === "pi pi-sort-amount-up-alt") {
     sortBtnIcon.value = "pi pi-sort-amount-down";
@@ -47,6 +50,7 @@ function changeSort() {
   }
 }
 
+// Get data from server
 async function getData() {
   categories.value = new Array<Category>(2);
   totalPages.value = 0;
@@ -67,18 +71,22 @@ async function getData() {
   }, 1000);
 }
 
+// Watch sort type/page and search query change
 const watcher = watchEffect(async () => await getData());
 
+// Show dialog for create/update category
 function showDialog() {
   $reset();
   showModal.value = true;
 }
 
+// Get data from choosen row
 const selectRow = (data: Category) => {
   formData.value = data;
   showDialog();
 };
 
+// Handle create/update category
 async function handleSubmitForm() {
   loading.value = true;
   await createOrUpdateCategory(
@@ -96,6 +104,7 @@ async function handleSubmitForm() {
   }
 }
 
+// Handle delete/restore category
 const deleteOrRestoreCategory = (data: Category, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
@@ -125,6 +134,7 @@ const deleteOrRestoreCategory = (data: Category, event: any) => {
   });
 };
 
+// Handle import file
 async function onFileSelect(event: any) {
   const formData = new FormData();
   formData.append("file", event.files[0]);
