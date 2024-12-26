@@ -21,6 +21,9 @@ export default defineConfig({
       "/api": {
         target: "http://bookstore.test",
         changeOrigin: true,
+        headers: {
+          Accept: "application/json",
+        },
       },
     },
   },

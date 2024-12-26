@@ -4,9 +4,11 @@ import { useRoute } from "vue-router";
 
 const route = useRoute();
 
+// Get enter animate
 const enter = computed<string>(() => {
   return route.meta.enter as string;
 });
+// Get leave animate
 const leave = computed<string>(() => {
   return route.meta.leave as string;
 });

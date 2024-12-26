@@ -15,6 +15,7 @@ import FocusTrap from "primevue/focustrap";
 import ToastService from "primevue/toastservice";
 import ConfirmationService from 'primevue/confirmationservice';
 
+// Define preset for PrimeVue
 const Noir = definePreset(Aura, {
   semantic: {
     primary: {
@@ -65,14 +66,17 @@ const Noir = definePreset(Aura, {
 
 const app = createApp(App);
 
+// Config and use Pinia
 const pinia = createPinia();
 pinia.use(({ store }) => {
   store.router = markRaw(router);
 });
 app.use(pinia);
 
+// Use router
 app.use(router);
 
+// Config and use PrimeVue UI library
 app.use(PrimeVue, {
   theme: {
     preset: Noir,

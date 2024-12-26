@@ -5,6 +5,7 @@ import { computed, ref } from "vue";
 
 const { isAdmin, name } = storeToRefs(useAuthStore());
 const { logout } = useAuthStore();
+// Init data
 const path = computed<string>(() => (isAdmin.value ? "admin" : "home"));
 const searchQuery = ref<string>("");
 const isDarkMode = ref<boolean>(false);
@@ -28,10 +29,12 @@ const tieredMenuItems = ref([
   },
 ]);
 
+// Show tiered menu
 const toggle = (event: Event) => {
   tieredMenu.value.toggle(event);
 };
 
+// Change light/dark mode
 function toggleDarkMode() {
   document.documentElement.classList.toggle("my-app-dark");
 }
