@@ -5,14 +5,19 @@ import { storeToRefs } from "pinia";
 import { useProductsStore } from "@/stores/products";
 import { useConfirm } from "primevue/useconfirm";
 
+const { getAll, deleteProduct, exportData, restoreProduct, importFile } =
+  useProductsStore();
+const { results } = storeToRefs(useProductsStore());
+const confirm = useConfirm();
+// Init data
 const products = ref<Array<Product> | null>(new Array<Product>(2));
 const columns = ref([
   { field: "author", header: "Tác giả" },
   { field: "translator", header: "Người dịch" },
-  { field: "supplier_name", header: "Nhà cung cấp" },
+  { field: "supplier_id", header: "Nhà cung cấp" },
   { field: "publisher_name", header: "Nhà xuất bản" },
   { field: "publish_year", header: "Năm xuất bản" },
-  { field: "category_name", header: "Tên danh mục" },
+  { field: "category_id", header: "Tên danh mục" },
   { field: "weight", header: "Khối lượng" },
   { field: "cover_size", header: "Bìa" },
   { field: "pages", header: "Số trang" },
@@ -28,15 +33,13 @@ const sortBtnIcon = ref("pi pi-sort-amount-down");
 const searchQuery = ref<string>("");
 const totalPages = ref<number>(0);
 const page = ref<number>(0);
-const { getProducts, deleteProduct, exportData, restoreProduct, importFile } =
-  useProductsStore();
-const { results } = storeToRefs(useProductsStore());
-const confirm = useConfirm();
 
+// Show/hide columns
 const onToggle = (val: any) => {
   selectedColumns.value = columns.value.filter((col) => val.includes(col));
 };
 
+// Change sort type/icon
 function changeSort() {
   if (sortBtnIcon.value === "pi pi-sort-amount-up-alt") {
     sortBtnIcon.value = "pi pi-sort-amount-down";
@@ -47,10 +50,11 @@ function changeSort() {
   }
 }
 
+// Get data from server
 async function getData() {
   products.value = new Array<Product>(2);
   totalPages.value = 0;
-  await getProducts(
+  await getAll(
     `/api/admin/products?sort_type=${sortType.value}&page=${
       page.value / 2 + 1
     }&search_query=${searchQuery.value}`
@@ -67,8 +71,10 @@ async function getData() {
   }, 1000);
 }
 
+// Watch sort type/search query/page change
 const watcher = watchEffect(async () => await getData());
 
+// Handle delete/restore product
 const deleteOrRestoreProduct = (data: Product, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
@@ -92,12 +98,11 @@ const deleteOrRestoreProduct = (data: Product, event: any) => {
         : await deleteProduct(`/api/admin/products/${data.product_id}`);
       await getData();
     },
-    reject: () => {
-      console.log(`xoá ${data.name} thất bại~`);
-    },
+    reject: () => console.log(`xoá ${data.name} thất bại~`),
   });
 };
 
+// Handle upload file
 async function onFileSelect(event: any) {
   const formData = new FormData();
   formData.append("file", event.files[0]);
@@ -204,12 +209,12 @@ async function onFileSelect(event: any) {
           <p v-else>{{ data.name }}</p>
         </template>
       </Column>
-      <Column field="urls" header="Hình ảnh">
+      <Column field="url" header="Hình ảnh">
         <template #body="{ data }">
           <Skeleton v-if="data === null"></Skeleton>
           <img
             v-else
-            :src="data.urls ? data.urls.split(',')[0] : '/default_image.png'"
+            :src="data.url ? data.url.split(',')[0] : '/default_image.png'"
             :alt="data.name"
             class="w-24 rounded"
           />

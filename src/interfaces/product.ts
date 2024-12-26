@@ -3,17 +3,17 @@ export default interface Product {
   name: string;
   author: string;
   translator: string;
-  supplier_name: string;
+  supplier_id: string;
   publisher_name: string;
   publish_year: string;
-  category_name: string;
+  category_id: string;
   weight: string;
   cover_size: string;
   pages: string;
-  price: number;
+  description: string;
+  price: number | string;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string;
-  description: string;
-  urls?: string;
+  url?: string;
 }

@@ -1,3 +1,4 @@
+// Init data
 let data: any = {};
 let status: number = 400;
 let fileName: string = "file_name";
@@ -9,29 +10,41 @@ let fileName: string = "file_name";
  * @param {Response} response The fetch response
  */
 async function handleResponse(headers: Headers, response: Response) {
+  // Reset data
+  data = {};
+  // Assign status to response status
   status = response.status;
+  // Check if user is unauthenticated then remove token if present
+  if (status === 401) {
+    localStorage.getItem("token") ? localStorage.removeItem("token") : "";
+  }
   const acceptType = headers.get("Accept");
   const contentType = response.headers.get("Content-Type");
+  // Handle accept type application/json
   if (acceptType && acceptType.includes("application/json")) {
-    if (!contentType || !contentType.includes("application/json")) {
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+    } else if (acceptType === "application/json") {
       throw new TypeError("Oops, we haven't got JSON!");
     }
-    data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message);
-    }
   }
+  // Handle accept type text/csv
   if (acceptType && acceptType.includes("text/csv")) {
-    if (!contentType || !contentType.includes("text/csv")) {
-      throw new TypeError("Oops, we haven't got CSV!");
-    }
-    const disposition = response.headers.get("Content-Disposition");
-    if (disposition && disposition.includes("attachment")) {
-      fileName = disposition.slice(disposition.indexOf("filename=") + 9);
-    }
-    data = await response.blob();
-    if (!response.ok) {
-      throw new Error(await response.text());
+    if (contentType && contentType.includes("text/csv")) {
+      // Reset file name
+      fileName = "file_name";
+      const disposition = response.headers.get("Content-Disposition");
+      if (disposition && disposition.includes("attachment")) {
+        // Get file name from server if present
+        fileName = disposition.slice(disposition.indexOf("filename=") + 9);
+      }
+      data = await response.blob();
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
     }
   }
 }
@@ -40,7 +53,8 @@ async function handleResponse(headers: Headers, response: Response) {
  * This function is custom get fetch
  *
  * @param {string} uri The fetch uri
- * @returns {Promise<{ data: any; status: number }>} The response type
+ * @param {Headers} myHeaders The fetch headers
+ * @returns {Promise<{ data: any; status: number; fileName: string }>} The response
  */
 async function useGetFetch(
   uri: string,
@@ -84,36 +98,52 @@ async function usePostOrPatchFetch<T>(
 }
 
 /**
- * This function is custom delete fetch
+ * This function is custom post fetch for send files
  *
  * @param {string} uri The fetch uri
- * @returns {Promise<{ status: number }>} The response type
+ * @param {FormData} formData The fetch body
+ * @param {Headers} myHeaders The fetch headers
+ * @returns {Promise<{ data: any; status: number }>} The response from server
  */
-async function useDeleteFetch(uri: string): Promise<{ status: number }> {
+async function useFilePostFetch(
+  uri: string,
+  formData: FormData,
+  myHeaders: Headers
+): Promise<{ data: any; status: number }> {
   try {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const response = await fetch(uri, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${token}`,
-        },
-      });
-      status = response.status;
-      if (!response.ok) {
-        if (status === 401) {
-          localStorage.removeItem("token");
-        }
-        throw new Error(`Response status: ${response.status}`);
-      }
-    } else if (uri === "/api/logout") {
-      status = 204;
-    }
+    const response = await fetch(uri, {
+      method: "POST",
+      body: formData,
+      headers: myHeaders,
+    });
+    await handleResponse(myHeaders, response);
   } catch (error) {
     console.error(error);
   }
-  return { status };
+  return { data, status };
 }
 
-export { useGetFetch, usePostOrPatchFetch, useDeleteFetch };
+/**
+ * This function is custom delete fetch
+ *
+ * @param {string} uri The fetch uri
+ * @param {Headers} myHeaders The fetch headers
+ * @returns {Promise<{ data: any; status: number }>} The response from server
+ */
+async function useDeleteFetch(
+  uri: string,
+  myHeaders: Headers
+): Promise<{ data: any; status: number }> {
+  try {
+    const response = await fetch(uri, {
+      method: "DELETE",
+      headers: myHeaders,
+    });
+    await handleResponse(myHeaders, response);
+  } catch (error) {
+    console.error(error);
+  }
+  return { data, status };
+}
+
+export { useGetFetch, usePostOrPatchFetch, useFilePostFetch, useDeleteFetch };

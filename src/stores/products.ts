@@ -1,24 +1,28 @@
 import {
   useDeleteFetch,
+  useFilePostFetch,
   useGetFetch,
   usePostOrPatchFetch,
 } from "@/composables/custom-fetch";
 import type Product from "@/interfaces/product";
+import router from "@/router";
 import { defineStore } from "pinia";
 import { useToast } from "primevue";
 import { ref } from "vue";
 
 export const useProductsStore = defineStore("products", () => {
+  const toast = useToast();
+  // Init data
   const results = ref();
   const initData: Product = {
     product_id: "",
     name: "",
     author: "",
     translator: "",
-    supplier_name: "",
+    supplier_id: "",
     publisher_name: "",
     publish_year: "",
-    category_name: "",
+    category_id: "",
     weight: "",
     cover_size: "",
     pages: "",
@@ -27,22 +31,23 @@ export const useProductsStore = defineStore("products", () => {
     updated_at: "",
     deleted_at: "",
     description: "",
-    urls: "",
   };
   const productErrors = ref<Product>(initData);
-  const toast = useToast();
+  let headers = new Headers();
 
   function $reset() {
     productErrors.value = initData;
   }
 
   // Custom headers for fetch
-  function customHeaders(): Headers {
-    const token = localStorage.getItem("token");
-    const headers = new Headers();
+  function customHeaders() {
+    headers = new Headers();
+    headers.append("Accept", "application/json");
     headers.append("Content-Type", "application/json");
-    headers.append("Authorization", `Bearer ${token}`);
-    return headers;
+    const token = localStorage.getItem("token");
+    return token
+      ? headers.append("Authorization", `Bearer ${token}`)
+      : router.push({ name: "login" });
   }
 
   /**
@@ -50,16 +55,12 @@ export const useProductsStore = defineStore("products", () => {
    *
    * @param uri The fetch uri
    */
-  async function getProducts(uri: string) {
-    const headers = customHeaders();
-    headers.append("Accept", "application/json");
+  async function getAll(uri: string) {
+    customHeaders();
     const { data, status } = await useGetFetch(uri, headers);
     status >= 200 && status <= 299
       ? (results.value = data.data)
       : (results.value = null);
-    if (status === 401) {
-      localStorage.removeItem("token");
-    }
   }
 
   /**
@@ -68,30 +69,30 @@ export const useProductsStore = defineStore("products", () => {
    */
   async function exportData() {
     if ("showDirectoryPicker" in window) {
-      const headers = customHeaders();
-      headers.append("Accept", "text/csv");
+      customHeaders();
+      headers.set("Accept", "application/json, text/csv");
       const { status, fileName, data } = await useGetFetch(
         "/api/admin/products/export",
         headers
       );
       if (status >= 200 && status <= 299) {
-        const directoryHandle = await (window as any).showDirectoryPicker();
-        const fileHandle = await directoryHandle.getFileHandle(fileName, {
-          create: true,
-        });
-        const writer = await fileHandle.createWritable();
-        await writer.write(data);
-        await writer.close();
-        toast.add({
-          severity: "success",
-          summary: "Thành công",
-          detail: "Xuất file thành công~",
-          life: 3000,
-        });
-        return;
-      }
-      if (status === 401) {
-        localStorage.removeItem("token");
+        try {
+          const directoryHandle = await (window as any).showDirectoryPicker();
+          const fileHandle = await directoryHandle.getFileHandle(fileName, {
+            create: true,
+          });
+          const writer = await fileHandle.createWritable();
+          await writer.write(data);
+          await writer.close();
+          return toast.add({
+            severity: "success",
+            summary: "Thành công",
+            detail: "Xuất file thành công~",
+            life: 3000,
+          });
+        } catch (error) {
+          console.error(error);
+        }
       }
       toast.add({
         severity: "error",
@@ -103,37 +104,28 @@ export const useProductsStore = defineStore("products", () => {
   }
 
   /**
-   * This function to create or update product
+   * This function is special custom post fetch for this store
    *
-   * @param {string} method The fetch method (false is create and vice versa)
    * @param {string} uri The fetch uri
-   * @param {Product} formData The fetch body
+   * @param {FormData} formData The fetch body
    */
-  async function createOrUpdateProduct(
-    method: string,
-    uri: string,
-    formData: Product
-  ) {
-    $reset();
-    const headers = customHeaders();
-    headers.append("Accept", "application/json");
-    const { data, status } = await usePostOrPatchFetch<Product>(
-      method,
-      uri,
-      formData,
-      headers
-    );
+  async function specialCustomPostFetch(uri: string, formData: FormData) {
+    customHeaders();
+    headers.delete("Content-Type");
+    const { status, data } = await useFilePostFetch(uri, formData, headers);
     if (status >= 200 && status <= 299) {
-      toast.add({
+      router.push({ name: "products" });
+      return toast.add({
         severity: "success",
         summary: "Thành công",
         detail: data.message,
         life: 3000,
       });
-      return;
     }
     if (status === 422) {
-      productErrors.value = data.errors;
+      uri === "/api/admin/products/import"
+        ? console.error(data.message)
+        : (productErrors.value = data.errors);
     }
     toast.add({
       severity: "error",
@@ -144,41 +136,78 @@ export const useProductsStore = defineStore("products", () => {
   }
 
   /**
+   * This function to create product
+   *
+   * @param {Product} data The product data
+   * @param {FileList|null|undefined} images The product images
+   */
+  async function createProduct(
+    data: Product,
+    images: FileList | null | undefined
+  ) {
+    $reset();
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("author", data.author);
+    formData.append("translator", data.translator);
+    formData.append("supplier_id", (data.supplier_id as any).id);
+    formData.append("publisher_name", data.publisher_name);
+    const date = new Date(data.publish_year);
+    formData.append(
+      "publish_year",
+      `${date.getFullYear()}-${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`
+    );
+    formData.append("category_id", (data.category_id as any).id);
+    formData.append("weight", data.weight);
+    formData.append("cover_size", data.cover_size);
+    formData.append("pages", data.pages);
+    formData.append("price", data.price as string);
+    formData.append("description", data.description);
+    Array.from(images as FileList).forEach((image) => {
+      formData.append("images[]", image);
+    });
+    await specialCustomPostFetch("/api/admin/products", formData);
+  }
+
+  /**
+   * This function to update product
+   *
+   * @param {Product} formData The fetch body
+   */
+  async function updateProduct(formData: Product) {
+    $reset();
+    customHeaders();
+    const { data, status } = await usePostOrPatchFetch<Product>(
+      "PATCH",
+      "/api/admin/products",
+      formData,
+      headers
+    );
+    status === 422 ? (productErrors.value = data.errors) : "";
+    status >= 200 && status <= 299
+      ? toast.add({
+          severity: "success",
+          summary: "Thành công",
+          detail: data.message,
+          life: 3000,
+        })
+      : toast.add({
+          severity: "error",
+          summary: "Lỗi",
+          detail: data.message,
+          life: 3000,
+        });
+  }
+
+  /**
    * This function to import excel file
    *
-   * @param {any} formData The fetch body
+   * @param {FormData} formData The fetch body
    */
-  async function importFile(formData: any) {
-    const headers = customHeaders();
-    headers.set("Accept", "application/json");
-    headers.delete("Content-Type");
-    try {
-      const response = await fetch("/api/admin/products/import", {
-        method: "POST",
-        headers: headers,
-        body: formData,
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        if (response.status === 422) {
-          toast.add({
-            severity: "error",
-            summary: "Lỗi",
-            detail: data.message,
-            life: 3000,
-          });
-        }
-        throw new Error(data.message);
-      }
-      toast.add({
-        severity: "success",
-        summary: "Thành công",
-        detail: data.message,
-        life: 3000,
-      });
-    } catch (error) {
-      console.error(error);
-    }
+  async function importFile(formData: FormData) {
+    await specialCustomPostFetch("/api/admin/products/import", formData);
   }
 
   /**
@@ -187,18 +216,19 @@ export const useProductsStore = defineStore("products", () => {
    * @param uri The fetch uri
    */
   async function deleteProduct(uri: string) {
-    const { status } = await useDeleteFetch(uri);
+    customHeaders();
+    const { data, status } = await useDeleteFetch(uri, headers);
     status >= 200 && status <= 299
       ? toast.add({
           severity: "success",
           summary: "Thành công",
-          detail: "Ngừng kích hoạt thành công~",
+          detail: data.message,
           life: 3000,
         })
       : toast.add({
           severity: "error",
           summary: "Lỗi",
-          detail: "Ngừng kích hoạt thất bại",
+          detail: data.message,
           life: 3000,
         });
   }
@@ -209,11 +239,12 @@ export const useProductsStore = defineStore("products", () => {
    * @param {string} uri The fetch uri
    */
   async function restoreProduct(uri: string) {
+    customHeaders();
     const { status } = await usePostOrPatchFetch<Product>(
       "PATCH",
       uri,
       initData,
-      customHeaders()
+      headers
     );
     status >= 200 && status <= 299
       ? toast.add({
@@ -233,8 +264,9 @@ export const useProductsStore = defineStore("products", () => {
   return {
     results,
     productErrors,
-    getProducts,
-    createOrUpdateProduct,
+    getAll,
+    createProduct,
+    updateProduct,
     deleteProduct,
     $reset,
     exportData,
