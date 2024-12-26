@@ -10,6 +10,8 @@ import {
 import { useToast } from "primevue";
 
 export const useAuthStore = defineStore("auth", () => {
+  const toast = useToast();
+  // Init data
   const name = ref<string>("");
   const isAdmin = ref<boolean>(false);
   const initData: Auth = {
@@ -19,7 +21,6 @@ export const useAuthStore = defineStore("auth", () => {
     password_confirmation: "",
   };
   const authErrors = ref<Auth>(initData);
-  const toast = useToast();
 
   function $reset() {
     authErrors.value = initData;
@@ -67,7 +68,7 @@ export const useAuthStore = defineStore("auth", () => {
         life: 3000,
       });
     }
-    status === 422 ? authErrors.value = data.errors : "";
+    status === 422 ? (authErrors.value = data.errors) : "";
     toast.add({
       severity: "error",
       summary: "Lỗi",
@@ -79,8 +80,6 @@ export const useAuthStore = defineStore("auth", () => {
   // Check user
   async function checkUser() {
     const token = localStorage.getItem("token");
-    name.value = "";
-    isAdmin.value = false;
     if (token) {
       const headers = customHeaders();
       headers.append("Authorization", `Bearer ${token}`);
@@ -88,32 +87,33 @@ export const useAuthStore = defineStore("auth", () => {
       if (status >= 200 && status <= 299) {
         name.value = data.name;
         isAdmin.value = data.isAdmin;
+        return;
       }
-      status === 401 ? localStorage.removeItem("token") : "";
     }
+    name.value = "";
+    isAdmin.value = false;
   }
 
   // Logout system
   async function logout() {
-    const { status } = await useDeleteFetch("/api/logout");
-    if (status >= 200 && status <= 299) {
-      name.value = "";
-      isAdmin.value = false;
+    const token = localStorage.getItem("token");
+    if (token) {
+      const headers = customHeaders();
+      headers.append("Authorization", `Bearer ${token}`);
+      const { data, status } = await useDeleteFetch("/api/logout", headers);
+      if (status < 200 || status > 299) {
+        return toast.add({
+          severity: "error",
+          summary: "Lỗi",
+          detail: data.message,
+          life: 3000,
+        });
+      }
       localStorage.removeItem("token");
-      router.push({ name: "login" });
-      return toast.add({
-        severity: "success",
-        summary: "Thành công",
-        detail: "Đăng xuất thành công~",
-        life: 3000,
-      });
     }
-    toast.add({
-      severity: "error",
-      summary: "Lỗi",
-      detail: "Đăng xuất thất bại",
-      life: 3000,
-    });
+    router.push({ name: "login" });
+    name.value = "";
+    isAdmin.value = false;
   }
 
   return { name, isAdmin, authErrors, $reset, auth, checkUser, logout };

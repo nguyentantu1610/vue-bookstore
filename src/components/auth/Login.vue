@@ -4,11 +4,13 @@ import type Auth from "@/interfaces/auth";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
 
-const formData = ref<Auth>({ email: "", password: "" });
 const { authErrors } = storeToRefs(useAuthStore());
 const { auth, $reset } = useAuthStore();
+// Init data
+const formData = ref<Auth>({ email: "", password: "" });
 const loading = ref<boolean>(false);
 
+// Perform login
 async function login() {
   loading.value = true;
   await auth("/api/login", formData.value);

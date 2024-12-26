@@ -4,24 +4,27 @@ import type Auth from "@/interfaces/auth";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
 
+const { authErrors } = storeToRefs(useAuthStore());
+const { auth, $reset } = useAuthStore();
+// Init data
 const formData = ref<Auth>({
   email: "",
   verification_code: "",
   password: "",
   password_confirmation: "",
 });
-const { authErrors } = storeToRefs(useAuthStore());
-const { auth, $reset } = useAuthStore();
 const loading = ref<boolean>(false);
 const btnLoading = ref<boolean>(false);
 const btnLabel = ref<string>("Gửi mã");
 
+// Perform change password
 async function forgotPassword() {
   loading.value = true;
   await auth("/api/forgot-password", formData.value);
   loading.value = false;
 }
 
+// Handle send verification code
 async function sendForgotCode() {
   let time: number = 0;
   btnLoading.value = true;
