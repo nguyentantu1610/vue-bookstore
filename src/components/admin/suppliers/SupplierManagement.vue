@@ -5,6 +5,18 @@ import { storeToRefs } from "pinia";
 import { useSuppliersStore } from "@/stores/suppliers";
 import { useConfirm } from "primevue/useconfirm";
 
+const {
+  getSuppliers,
+  createOrUpdateSupplier,
+  deleteSupplier,
+  $reset,
+  exportData,
+  restoreSupplier,
+  importFile,
+} = useSuppliersStore();
+const { results, supplierErrors } = storeToRefs(useSuppliersStore());
+const confirm = useConfirm();
+//Init data
 const showModal = ref<boolean>(false);
 const loading = ref<boolean>(false);
 const suppliers = ref<Array<Supplier> | null>(new Array<Supplier>(2));
@@ -21,16 +33,6 @@ const sortBtnIcon = ref("pi pi-sort-amount-down");
 const searchQuery = ref<string>("");
 const totalPages = ref<number>(0);
 const page = ref<number>(0);
-const {
-  getSuppliers,
-  createOrUpdateSupplier,
-  deleteSupplier,
-  $reset,
-  exportData,
-  restoreSupplier,
-  importFile,
-} = useSuppliersStore();
-const { results, supplierErrors } = storeToRefs(useSuppliersStore());
 const formData = ref<Supplier>({
   id: "",
   supplier_name: "",
@@ -38,12 +40,13 @@ const formData = ref<Supplier>({
   phone_number: "",
   address: "",
 });
-const confirm = useConfirm();
 
+// Show/hide columns
 const onToggle = (val: any) => {
   selectedColumns.value = columns.value.filter((col) => val.includes(col));
 };
 
+// Change sort type/icon
 function changeSort() {
   if (sortBtnIcon.value === "pi pi-sort-amount-up-alt") {
     sortBtnIcon.value = "pi pi-sort-amount-down";
@@ -54,6 +57,7 @@ function changeSort() {
   }
 }
 
+// Get data from server
 async function getData() {
   suppliers.value = new Array<Supplier>(2);
   totalPages.value = 0;
@@ -74,18 +78,22 @@ async function getData() {
   }, 1000);
 }
 
+// Watch search query/sort type and page change
 const watcher = watchEffect(async () => await getData());
 
+// Show dialog for create/update supplier
 function showDialog() {
   $reset();
   showModal.value = true;
 }
 
+// Get data for update from choosen row
 const selectRow = (data: Supplier) => {
   formData.value = data;
   showDialog();
 };
 
+// Handle create/update supplier
 async function handleSubmitForm() {
   loading.value = true;
   await createOrUpdateSupplier(
@@ -114,6 +122,7 @@ async function handleSubmitForm() {
   }
 }
 
+// Handle delete/restore supplier
 const deleteOrRestoreSupplier = (data: Supplier, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
@@ -137,12 +146,11 @@ const deleteOrRestoreSupplier = (data: Supplier, event: any) => {
         : await deleteSupplier(`/api/admin/suppliers/${data.id}`);
       await getData();
     },
-    reject: () => {
-      console.log(`xoá ${data.supplier_name} thất bại~`);
-    },
+    reject: () => console.log(`xoá ${data.supplier_name} thất bại~`),
   });
 };
 
+// Handle upload file
 async function onFileSelect(event: any) {
   const formData = new FormData();
   formData.append("file", event.files[0]);
@@ -188,7 +196,9 @@ async function onFileSelect(event: any) {
       v-model:visible="showModal"
       modal
       :header="
-        formData.id ? 'Cập nhật thông tin nhà cung cấp' : 'Thêm mới nhà cung cấp'
+        formData.id
+          ? 'Cập nhật thông tin nhà cung cấp'
+          : 'Thêm mới nhà cung cấp'
       "
       :style="{ width: '25rem' }"
     >
