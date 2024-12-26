@@ -179,9 +179,19 @@ export const useProductsStore = defineStore("products", () => {
   async function updateProduct(formData: Product) {
     $reset();
     customHeaders();
+    (formData as any).category_name = (formData.category_id as any).name;
+    formData.category_id = (formData.category_id as any).id;
+    (formData as any).supplier_name = (
+      formData.supplier_id as any
+    ).supplier_name;
+    formData.supplier_id = (formData.supplier_id as any).id;
+    const date = new Date(formData.publish_year);
+    formData.publish_year = `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
     const { data, status } = await usePostOrPatchFetch<Product>(
       "PATCH",
-      "/api/admin/products",
+      `/api/admin/products/${formData.product_id}`,
       formData,
       headers
     );
@@ -265,6 +275,7 @@ export const useProductsStore = defineStore("products", () => {
     results,
     productErrors,
     getAll,
+    specialCustomPostFetch,
     createProduct,
     updateProduct,
     deleteProduct,

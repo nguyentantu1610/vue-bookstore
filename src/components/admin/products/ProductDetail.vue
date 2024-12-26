@@ -8,7 +8,8 @@ import { useRoute } from "vue-router";
 
 const route = useRoute();
 const { productErrors, results } = storeToRefs(useProductsStore());
-const { getAll, createProduct, $reset } = useProductsStore();
+const { getAll, specialCustomPostFetch, createProduct, updateProduct, $reset } =
+  useProductsStore();
 // Init data
 const id = route.params.id ? route.params.id : null;
 const formData = ref<Product>({
@@ -63,18 +64,47 @@ async function getCategory() {
 // Handle create/update product
 async function handleSubmitForm() {
   formLoading.value = true;
-  id ? "" : await createProduct(formData.value, images.value?.files);
+  if (id) {
+    await updateProduct(formData.value);
+    castSelectData();
+  } else {
+    await createProduct(formData.value, images.value?.files);
+  }
   formLoading.value = false;
 }
 
-onMounted(() => $reset());
+/* const formData = new FormData();
+    Array.from(images.value?.files as FileList).forEach((image) => {
+      formData.append("images[]", image);
+    });
+    await specialCustomPostFetch("/api/admin/banners", formData); */
+
+function castSelectData() {
+  formData.value.category_id = {
+    name: (formData.value as any).category_name,
+    id: formData.value.category_id,
+  } as unknown as string;
+  formData.value.supplier_id = {
+    supplier_name: (formData.value as any).supplier_name,
+    id: formData.value.supplier_id,
+  } as unknown as string;
+}
+
+onMounted(async () => {
+  $reset();
+  if (id) {
+    await getAll(`/api/admin/products/${id}`);
+    formData.value = results.value;
+    castSelectData();
+  }
+});
 </script>
 
 <template>
   <div class="pt-6 pl-10 pr-10 overflow-auto basis-4/5">
     <Card>
       <template #title>
-        {{ id ? "Cập nhật Sản Phẩm" : "Thêm Mới Sản Phẩm" }}
+        {{ id ? "Cập Nhật Sản Phẩm" : "Thêm Mới Sản Phẩm" }}
       </template>
       <template #content>
         <ScrollPanel class="w-full h-3/4 pr-6 pl-6">
