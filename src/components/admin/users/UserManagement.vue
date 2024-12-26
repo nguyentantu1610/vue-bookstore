@@ -5,6 +5,10 @@ import { storeToRefs } from "pinia";
 import { useUsersStore } from "@/stores/users";
 import { useConfirm } from "primevue/useconfirm";
 
+const { getUsers, deleteUser, exportData, restoreUser } = useUsersStore();
+const { results } = storeToRefs(useUsersStore());
+const confirm = useConfirm();
+// Init data
 const users = ref<Array<User> | null>(new Array<User>(2));
 const columns = ref([
   { field: "name", header: "Tên người dùng" },
@@ -19,14 +23,13 @@ const sortBtnIcon = ref("pi pi-sort-amount-down");
 const searchQuery = ref<string>("");
 const totalPages = ref<number>(0);
 const page = ref<number>(0);
-const { getUsers, deleteUser, exportData, restoreUser } = useUsersStore();
-const { results } = storeToRefs(useUsersStore());
-const confirm = useConfirm();
 
+// Show/hide column
 const onToggle = (val: any) => {
   selectedColumns.value = columns.value.filter((col) => val.includes(col));
 };
 
+// Change sort icon and type
 function changeSort() {
   if (sortBtnIcon.value === "pi pi-sort-amount-up-alt") {
     sortBtnIcon.value = "pi pi-sort-amount-down";
@@ -37,6 +40,7 @@ function changeSort() {
   }
 }
 
+// Get data from server
 async function getData() {
   users.value = new Array<User>(2);
   totalPages.value = 0;
@@ -49,7 +53,7 @@ async function getData() {
     if (results.value !== null) {
       users.value = results.value.data;
       totalPages.value = results.value.total;
-    } else if (page.value != 0) {
+    } else if (page.value !== 0) {
       page.value = 0;
     } else {
       users.value = null;
@@ -57,8 +61,10 @@ async function getData() {
   }, 1000);
 }
 
+// Watch sort type/search query and page change
 const watcher = watchEffect(async () => await getData());
 
+// Delete/retore user
 const deleteOrRestoreUser = (data: User, event: any) => {
   const isDeleted = data.deleted_at !== null;
   confirm.require({
@@ -82,9 +88,7 @@ const deleteOrRestoreUser = (data: User, event: any) => {
         : await deleteUser(`/api/admin/users/${data.id}`);
       await getData();
     },
-    reject: () => {
-      console.log(`xoá ${data.name} thất bại~`);
-    },
+    reject: () => console.log(`xoá ${data.name} thất bại~`),
   });
 };
 </script>
