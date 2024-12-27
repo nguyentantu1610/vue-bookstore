@@ -9,7 +9,6 @@ import SideBar from "../components/SideBar.vue";
     <div class="flex flex-row bg-slate-50 dark:bg-zinc-950" style="height: 83vh">
       <SideBar />
       <RouterView />
-      <ScrollTop />
     </div>
   </main>
 </template>

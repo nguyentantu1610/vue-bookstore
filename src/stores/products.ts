@@ -252,7 +252,7 @@ export const useProductsStore = defineStore("products", () => {
    */
   async function restoreProduct(uri: string) {
     customHeaders();
-    const { status } = await usePostOrPatchFetch<Product>(
+    const { data, status } = await usePostOrPatchFetch<Product>(
       "PATCH",
       uri,
       initData,
@@ -262,13 +262,13 @@ export const useProductsStore = defineStore("products", () => {
       ? toast.add({
           severity: "success",
           summary: "Thành công",
-          detail: "Khôi phục thành công~",
+          detail: data.message,
           life: 3000,
         })
       : toast.add({
           severity: "error",
           summary: "Lỗi",
-          detail: "Khôi phục thất bại",
+          detail: data.message,
           life: 3000,
         });
   }
