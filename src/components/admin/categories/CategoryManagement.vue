@@ -285,7 +285,7 @@ async function onFileSelect(event: any) {
       <Column field="name" header="Tên">
         <template #body="{ data }">
           <Skeleton v-if="data === null"></Skeleton>
-          <p v-else>{{ data.name }}</p>
+          <p v-else class="max-w-52">{{ data.name }}</p>
         </template>
       </Column>
       <Column
@@ -302,7 +302,7 @@ async function onFileSelect(event: any) {
               :value="data[col.field] === null ? 'Kích hoạt' : 'Vô hiệu'"
               :severity="data[col.field] === null ? 'success' : ''"
             />
-            <p v-else>{{ data[col.field] }}</p>
+            <p v-else class="max-w-52">{{ data[col.field] }}</p>
           </div>
         </template>
       </Column>

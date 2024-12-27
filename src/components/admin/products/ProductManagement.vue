@@ -14,10 +14,10 @@ const products = ref<Array<Product> | null>(new Array<Product>(2));
 const columns = ref([
   { field: "author", header: "Tác giả" },
   { field: "translator", header: "Người dịch" },
-  { field: "supplier_id", header: "Nhà cung cấp" },
+  { field: "supplier_name", header: "Nhà cung cấp" },
   { field: "publisher_name", header: "Nhà xuất bản" },
   { field: "publish_year", header: "Năm xuất bản" },
-  { field: "category_id", header: "Tên danh mục" },
+  { field: "category_name", header: "Tên danh mục" },
   { field: "weight", header: "Khối lượng" },
   { field: "cover_size", header: "Bìa" },
   { field: "pages", header: "Số trang" },
@@ -206,7 +206,7 @@ async function onFileSelect(event: any) {
       <Column field="name" header="Tên sản phẩm">
         <template #body="{ data }">
           <Skeleton v-if="data === null"></Skeleton>
-          <p v-else>{{ data.name }}</p>
+          <p v-else class="max-w-52">{{ data.name }}</p>
         </template>
       </Column>
       <Column field="url" header="Hình ảnh">
@@ -234,7 +234,7 @@ async function onFileSelect(event: any) {
               :value="data[col.field] === null ? 'Kích hoạt' : 'Vô hiệu'"
               :severity="data[col.field] === null ? 'success' : ''"
             />
-            <p v-else>{{ data[col.field] }}</p>
+            <p v-else class="max-w-52">{{ data[col.field] }}</p>
           </div>
         </template>
       </Column>

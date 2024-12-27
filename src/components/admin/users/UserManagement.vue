@@ -147,7 +147,7 @@ const deleteOrRestoreUser = (data: User, event: any) => {
       <Column field="email" header="Email">
         <template #body="{ data }">
           <Skeleton v-if="data === null"></Skeleton>
-          <p v-else>{{ data.email }}</p>
+          <p v-else class="max-w-52">{{ data.email }}</p>
         </template>
       </Column>
       <Column
@@ -164,7 +164,7 @@ const deleteOrRestoreUser = (data: User, event: any) => {
               :value="data[col.field] === null ? 'Kích hoạt' : 'Vô hiệu'"
               :severity="data[col.field] === null ? 'success' : ''"
             />
-            <p v-else>{{ data[col.field] }}</p>
+            <p v-else class="max-w-52">{{ data[col.field] }}</p>
           </div>
         </template>
       </Column>
