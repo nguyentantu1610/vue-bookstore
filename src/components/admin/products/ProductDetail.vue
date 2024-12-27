@@ -43,8 +43,8 @@ async function getSupplier() {
     supplierLoading.value = true;
     await getAll("/api/admin/suppliers/list");
     setTimeout(() => {
+      results.value !== null ? (suppliers.value = results.value) : "";
       supplierLoading.value = false;
-      suppliers.value = results.value;
     }, 1000);
   }
 }
@@ -55,8 +55,8 @@ async function getCategory() {
     categoryLoading.value = true;
     await getAll("/api/admin/categories/list");
     setTimeout(() => {
+      results.value !== null ? (categories.value = results.value) : "";
       categoryLoading.value = false;
-      categories.value = results.value;
     }, 1000);
   }
 }
@@ -73,12 +73,17 @@ async function handleSubmitForm() {
   formLoading.value = false;
 }
 
-/* const formData = new FormData();
-    Array.from(images.value?.files as FileList).forEach((image) => {
-      formData.append("images[]", image);
-    });
-    await specialCustomPostFetch("/api/admin/banners", formData); */
+// Upload product's images
+async function updateImage() {
+  const data = new FormData();
+  data.append("id", formData.value.product_id);
+  Array.from(images.value?.files as FileList).forEach((image) => {
+    data.append("images[]", image);
+  });
+  await specialCustomPostFetch("/api/admin/banners", data);
+}
 
+// Cast category and supplier to object
 function castSelectData() {
   formData.value.category_id = {
     name: (formData.value as any).category_name,
@@ -92,10 +97,13 @@ function castSelectData() {
 
 onMounted(async () => {
   $reset();
+  // If id is present then get the product information
   if (id) {
     await getAll(`/api/admin/products/${id}`);
-    formData.value = results.value;
-    castSelectData();
+    if (results.value !== null) {
+      formData.value = results.value;
+      castSelectData();
+    }
   }
 });
 </script>
@@ -508,6 +516,9 @@ onMounted(async () => {
                 label="Import"
                 chooseLabel="Chọn file"
                 :showUploadButton="id ? true : false"
+                uploadLabel="Tải lên"
+                @error="updateImage"
+                upload
                 cancelLabel="Huỷ"
                 class="mr-2"
               >

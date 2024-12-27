@@ -114,7 +114,9 @@ export const useProductsStore = defineStore("products", () => {
     headers.delete("Content-Type");
     const { status, data } = await useFilePostFetch(uri, formData, headers);
     if (status >= 200 && status <= 299) {
-      router.push({ name: "products" });
+      uri === "/api/admin/products/import"
+        ? router.push({ name: "products" })
+        : "";
       return toast.add({
         severity: "success",
         summary: "Thành công",
