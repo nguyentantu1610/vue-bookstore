@@ -11,7 +11,6 @@ const route = useRoute();
 const { productErrors, results } = storeToRefs(useProductsStore());
 const {
   getAll,
-  specialCustomPostFetch,
   createProduct,
   updateProduct,
   $reset,
@@ -114,25 +113,12 @@ const deleteOrRestoreImage = (data: any, event: any) => {
 async function handleSubmitForm() {
   formLoading.value = true;
   if (id) {
-    await updateProduct(formData.value);
+    await updateProduct(formData.value, images.value?.files);
     castSelectData();
-    if (images.value?.files?.length !== 0) {
-      await updateImage();
-    }
   } else {
     await createProduct(formData.value, images.value?.files);
   }
   formLoading.value = false;
-}
-
-// Upload product's images
-async function updateImage() {
-  const data = new FormData();
-  data.append("id", formData.value.product_id);
-  Array.from(images.value?.files as FileList).forEach((image) => {
-    data.append("images[]", image);
-  });
-  await specialCustomPostFetch("/api/admin/banners", data);
 }
 
 // Cast category and supplier to object
@@ -593,10 +579,15 @@ onMounted(async () => {
           paginator
           :rows="totalPages"
           class="mr-6 ml-6"
-          v-if="totalPages"
+          v-if="formData.product_id"
         >
           <template #header>
-            <h1 class="text-xl font-medium mt-6">Danh Sách Hình Ảnh</h1>
+            <div class="flex items-center">
+              <h1 class="text-xl font-medium mt-6">Danh Sách Hình Ảnh</h1>
+              <div class="flex justify-end grow">
+                <Button icon="pi pi-refresh" rounded raised @click="getImages" />
+              </div>
+            </div>
           </template>
           <template #grid="slotProps">
             <div class="grid grid-cols-12 gap-4">
@@ -641,7 +632,7 @@ onMounted(async () => {
               </div>
             </div>
           </template>
-          <template #empty> Hello World </template>
+          <template #empty> Sản phẩm này chưa có hình ảnh nào</template>
         </DataView>
       </template>
     </Card>

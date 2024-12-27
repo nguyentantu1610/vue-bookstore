@@ -177,8 +177,12 @@ export const useProductsStore = defineStore("products", () => {
    * This function to update product
    *
    * @param {Product} formData The fetch body
+   * @param {FileList|null|undefined} images The product images
    */
-  async function updateProduct(formData: Product) {
+  async function updateProduct(
+    formData: Product,
+    images: FileList | null | undefined
+  ) {
     $reset();
     customHeaders();
     (formData as any).category_name = (formData.category_id as any).name;
@@ -198,19 +202,29 @@ export const useProductsStore = defineStore("products", () => {
       headers
     );
     status === 422 ? (productErrors.value = data.errors) : "";
-    status >= 200 && status <= 299
-      ? toast.add({
-          severity: "success",
-          summary: "Thành công",
-          detail: data.message,
-          life: 3000,
-        })
-      : toast.add({
-          severity: "error",
-          summary: "Lỗi",
-          detail: data.message,
-          life: 3000,
+    if (status >= 200 && status <= 299) {
+      toast.add({
+        severity: "success",
+        summary: "Thành công",
+        detail: data.message,
+        life: 3000,
+      });
+      if (images?.length) {
+        const newForm = new FormData();
+        newForm.append("id", formData.product_id);
+        Array.from(images as FileList).forEach((image) => {
+          newForm.append("images[]", image);
         });
+        await specialCustomPostFetch("/api/admin/banners", newForm);
+      }
+      return;
+    }
+    toast.add({
+      severity: "error",
+      summary: "Lỗi",
+      detail: data.message,
+      life: 3000,
+    });
   }
 
   /**

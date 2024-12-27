@@ -44,13 +44,13 @@ function toggleDarkMode() {
   <header class="fixed top-0 right-0 left-0 z-50">
     <Menubar :model="menuItems">
       <template #start>
-        <RouterLink
-          :to="{ name: path }"
+        <a
+          :href="`http://localhost:5173/${path}`"
           class="flex items-center justify-center"
         >
           <Avatar image="/menu-icon.png" class="mr-2" size="normal" />
           Bookstore
-        </RouterLink>
+      </a>
       </template>
       <template #item="{ item, props, hasSubmenu, root }">
         <a class="flex items-center" :href="item.url" v-bind="props.action" v-if="!isAdmin">
