@@ -80,7 +80,7 @@ app.use(router);
 app.use(PrimeVue, {
   theme: {
     preset: Noir,
-    options: { darkModeSelector: ".my-app-dark" },
+    options: { darkModeSelector: ".dark" },
   },
   ripple: true,
 });

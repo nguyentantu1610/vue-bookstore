@@ -36,7 +36,7 @@ const toggle = (event: Event) => {
 
 // Change light/dark mode
 function toggleDarkMode() {
-  document.documentElement.classList.toggle("my-app-dark");
+  document.documentElement.classList.toggle("dark");
 }
 </script>
 
@@ -71,7 +71,7 @@ function toggleDarkMode() {
             <InputIcon class="pi pi-search" />
             <InputText v-model="searchQuery" placeholder="Tìm kiếm" />
           </IconField>
-          <ToggleSwitch v-model="isDarkMode" @click="toggleDarkMode()">
+          <ToggleSwitch v-model="isDarkMode" @click="toggleDarkMode">
             <template #handle="{ checked }">
               <i
                 :class="[

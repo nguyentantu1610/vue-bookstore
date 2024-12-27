@@ -98,7 +98,8 @@ const router = createRouter({
     },
   ],
   linkActiveClass: "border-zinc-900 border-l-2",
-  linkExactActiveClass: "border-zinc-950 border-l-2",
+  linkExactActiveClass:
+    "border-l-2 border-zinc-950 dark:border-zinc-50 bg-slate-100 dark:bg-zinc-800",
 });
 
 // My Guardian

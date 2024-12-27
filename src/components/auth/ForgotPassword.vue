@@ -44,7 +44,10 @@ onUnmounted(() => $reset());
 </script>
 
 <template>
-  <Card v-focustrap class="basis-2/3 xl:basis-1/4 lg:basis-1/3 md:basis-2/5">
+  <Card
+    v-focustrap
+    class="basis-2/3 xl:basis-1/4 lg:basis-1/3 md:basis-2/5 dark:border dark:border-zinc-50"
+  >
     <template #title><h1 class="text-center">Quên mật khẩu</h1></template>
     <template #content>
       <form
@@ -155,8 +158,11 @@ onUnmounted(() => $reset());
         </div>
         <Divider><b>OR</b></Divider>
         <div class="text-center">
-          Đã có tài khoản?
-          <RouterLink :to="{ name: 'login' }" class="text-zinc-950 font-medium">
+          <span class="dark:text-zinc-500">Đã có tài khoản?</span>
+          <RouterLink
+            :to="{ name: 'login' }"
+            class="text-zinc-950 dark:text-zinc-50 font-medium"
+          >
             Đăng nhập
           </RouterLink>
         </div>
