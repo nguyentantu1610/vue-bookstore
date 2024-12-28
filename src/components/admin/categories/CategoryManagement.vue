@@ -60,7 +60,7 @@ async function getData() {
     }&search_query=${searchQuery.value}`
   );
   setTimeout(() => {
-    if (results.value !== null) {
+    if (results.value) {
       categories.value = results.value.data;
       totalPages.value = results.value.total;
     } else if (page.value != 0) {
@@ -97,7 +97,7 @@ async function handleSubmitForm() {
     formData.value
   );
   loading.value = false;
-  if (categoryErrors.value.name === "" && categoryErrors.value.name === "") {
+  if (!categoryErrors.value.name && !categoryErrors.value.description) {
     formData.value = { id: "", name: "", description: "" };
     showModal.value = false;
     await getData();
@@ -106,10 +106,9 @@ async function handleSubmitForm() {
 
 // Handle delete/restore category
 const deleteOrRestoreCategory = (data: Category, event: any) => {
-  const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
-    message: isDeleted
+    message: data.deleted_at
       ? "Bạn có chắc là muốn khôi phục danh mục này?"
       : "Bạn có chắc là muốn xoá danh mục này?",
     icon: "pi pi-info-circle",
@@ -119,18 +118,16 @@ const deleteOrRestoreCategory = (data: Category, event: any) => {
       outlined: true,
     },
     acceptProps: {
-      label: isDeleted ? "Khôi phục" : "Xoá",
-      severity: isDeleted ? "" : "danger",
+      label: data.deleted_at ? "Khôi phục" : "Xoá",
+      severity: data.deleted_at ? "" : "danger",
     },
     accept: async () => {
-      isDeleted
+      data.deleted_at
         ? await restoreCategory(`/api/admin/categories/restore/${data.id}`)
         : await deleteCategory(`/api/admin/categories/${data.id}`);
       await getData();
     },
-    reject: () => {
-      console.log(`xoá ${data.name} thất bại~`);
-    },
+    reject: () => console.log(`xoá ${data.name} thất bại~`),
   });
 };
 
@@ -192,9 +189,7 @@ async function onFileSelect(event: any) {
               autofocus
               maxlength="50"
               v-model="formData.name"
-              :invalid="
-                categoryErrors.name !== '' && categoryErrors.name !== undefined
-              "
+              :invalid="!!categoryErrors.name"
               :disabled="loading"
             />
             <label for="name">Tên</label>
@@ -216,10 +211,7 @@ async function onFileSelect(event: any) {
               fluid
               maxlength="50"
               v-model="formData.description"
-              :invalid="
-                categoryErrors.description !== '' &&
-                categoryErrors.description !== undefined
-              "
+              :invalid="!!categoryErrors.description"
               :disabled="loading"
             />
             <label for="description">Mô tả</label>
@@ -284,7 +276,7 @@ async function onFileSelect(event: any) {
       </template>
       <Column field="name" header="Tên">
         <template #body="{ data }">
-          <Skeleton v-if="data === null"></Skeleton>
+          <Skeleton v-if="!data"></Skeleton>
           <p v-else class="max-w-52">{{ data.name }}</p>
         </template>
       </Column>
@@ -295,12 +287,12 @@ async function onFileSelect(event: any) {
         :key="col.field + '_' + index"
       >
         <template #body="{ data }">
-          <Skeleton v-if="data === null"></Skeleton>
+          <Skeleton v-if="!data"></Skeleton>
           <div v-else>
             <Tag
               v-if="col.field === 'deleted_at'"
-              :value="data[col.field] === null ? 'Kích hoạt' : 'Vô hiệu'"
-              :severity="data[col.field] === null ? 'success' : ''"
+              :value="!data[col.field] ? 'Kích hoạt' : 'Vô hiệu'"
+              :severity="!data[col.field] ? 'success' : ''"
             />
             <p v-else class="max-w-52">{{ data[col.field] }}</p>
           </div>
@@ -309,16 +301,16 @@ async function onFileSelect(event: any) {
       <Column class="w-24 space-x-2">
         <template #body="{ data }">
           <Button
-            v-if="data !== null"
+            v-if="data"
             icon="pi pi-pencil"
             severity="warn"
             rounded
             @click="selectRow(data)"
           ></Button>
           <Button
-            v-if="data !== null"
-            :icon="data.deleted_at !== null ? 'pi pi-undo' : 'pi pi-trash'"
-            :severity="data.deleted_at !== null ? 'secondary' : 'danger'"
+            v-if="data"
+            :icon="data.deleted_at ? 'pi pi-undo' : 'pi pi-trash'"
+            :severity="data.deleted_at ? 'secondary' : 'danger'"
             rounded
             @click="deleteOrRestoreCategory(data, $event)"
           ></Button>

@@ -37,9 +37,7 @@ onUnmounted(() => $reset());
               autofocus
               maxlength="50"
               v-model="formData.email"
-              :invalid="
-                authErrors.email !== '' && authErrors.email !== undefined
-              "
+              :invalid="!!authErrors.email"
               :disabled="loading"
             />
             <label for="email">Email</label>
@@ -61,9 +59,7 @@ onUnmounted(() => $reset());
               toggleMask
               maxlength="50"
               v-model="formData.password"
-              :invalid="
-                authErrors.password !== '' && authErrors.password !== undefined
-              "
+              :invalid="!!authErrors.password"
               :disabled="loading"
             />
             <label for="password">Mật khẩu</label>

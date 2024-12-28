@@ -67,7 +67,7 @@ async function getData() {
     }&search_query=${searchQuery.value}`
   );
   setTimeout(() => {
-    if (results.value !== null) {
+    if (results.value) {
       suppliers.value = results.value.data;
       totalPages.value = results.value.total;
     } else if (page.value != 0) {
@@ -105,10 +105,10 @@ async function handleSubmitForm() {
   );
   loading.value = false;
   if (
-    supplierErrors.value.supplier_name === "" &&
-    supplierErrors.value.contact_name === "" &&
-    supplierErrors.value.phone_number === "" &&
-    supplierErrors.value.address === ""
+    !supplierErrors.value.supplier_name &&
+    !supplierErrors.value.contact_name &&
+    !supplierErrors.value.phone_number &&
+    !supplierErrors.value.address
   ) {
     formData.value = {
       id: "",
@@ -124,10 +124,9 @@ async function handleSubmitForm() {
 
 // Handle delete/restore supplier
 const deleteOrRestoreSupplier = (data: Supplier, event: any) => {
-  const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
-    message: isDeleted
+    message: data.deleted_at
       ? "Bạn có chắc là muốn khôi phục mục này?"
       : "Bạn có chắc là muốn xoá mục này?",
     icon: "pi pi-info-circle",
@@ -137,11 +136,11 @@ const deleteOrRestoreSupplier = (data: Supplier, event: any) => {
       outlined: true,
     },
     acceptProps: {
-      label: isDeleted ? "Khôi phục" : "Xoá",
-      severity: isDeleted ? "" : "danger",
+      label: data.deleted_at ? "Khôi phục" : "Xoá",
+      severity: data.deleted_at ? "" : "danger",
     },
     accept: async () => {
-      isDeleted
+      data.deleted_at
         ? await restoreSupplier(`/api/admin/suppliers/restore/${data.id}`)
         : await deleteSupplier(`/api/admin/suppliers/${data.id}`);
       await getData();
@@ -212,10 +211,7 @@ async function onFileSelect(event: any) {
               autofocus
               maxlength="50"
               v-model="formData.supplier_name"
-              :invalid="
-                supplierErrors.supplier_name !== '' &&
-                supplierErrors.supplier_name !== undefined
-              "
+              :invalid="!!supplierErrors.supplier_name"
               :disabled="loading"
             />
             <label for="supplier-name">Tên nhà cung cấp</label>
@@ -237,10 +233,7 @@ async function onFileSelect(event: any) {
               fluid
               maxlength="50"
               v-model="formData.contact_name"
-              :invalid="
-                supplierErrors.contact_name !== '' &&
-                supplierErrors.contact_name !== undefined
-              "
+              :invalid="!!supplierErrors.contact_name"
               :disabled="loading"
             />
             <label for="contact-name">Tên liên lạc</label>
@@ -262,10 +255,7 @@ async function onFileSelect(event: any) {
               maxlength="50"
               v-model="formData.phone_number"
               mask="0999999999"
-              :invalid="
-                supplierErrors.phone_number !== '' &&
-                supplierErrors.phone_number !== undefined
-              "
+              :invalid="!!supplierErrors.phone_number"
               :disabled="loading"
             />
             <label for="phone-number">Số điện thoại</label>
@@ -287,10 +277,7 @@ async function onFileSelect(event: any) {
               fluid
               maxlength="255"
               v-model="formData.address"
-              :invalid="
-                supplierErrors.address !== '' &&
-                supplierErrors.address !== undefined
-              "
+              :invalid="!!supplierErrors.address"
               :disabled="loading"
             />
             <label for="address">Địa chỉ</label>
@@ -355,7 +342,7 @@ async function onFileSelect(event: any) {
       </template>
       <Column field="supplier_name" header="Tên nhà cung cấp">
         <template #body="{ data }">
-          <Skeleton v-if="data === null"></Skeleton>
+          <Skeleton v-if="!data"></Skeleton>
           <p v-else class="max-w-52">{{ data.supplier_name }}</p>
         </template>
       </Column>
@@ -366,12 +353,12 @@ async function onFileSelect(event: any) {
         :key="col.field + '_' + index"
       >
         <template #body="{ data }">
-          <Skeleton v-if="data === null"></Skeleton>
+          <Skeleton v-if="!data"></Skeleton>
           <div v-else>
             <Tag
               v-if="col.field === 'deleted_at'"
-              :value="data[col.field] === null ? 'Kích hoạt' : 'Vô hiệu'"
-              :severity="data[col.field] === null ? 'success' : ''"
+              :value="!data[col.field] ? 'Kích hoạt' : 'Vô hiệu'"
+              :severity="!data[col.field] ? 'success' : ''"
             />
             <p v-else class="max-w-52">{{ data[col.field] }}</p>
           </div>
@@ -380,16 +367,16 @@ async function onFileSelect(event: any) {
       <Column class="w-24 space-x-2">
         <template #body="{ data }">
           <Button
-            v-if="data !== null"
+            v-if="data"
             icon="pi pi-pencil"
             severity="warn"
             rounded
             @click="selectRow(data)"
           ></Button>
           <Button
-            v-if="data !== null"
-            :icon="data.deleted_at !== null ? 'pi pi-undo' : 'pi pi-trash'"
-            :severity="data.deleted_at !== null ? 'secondary' : 'danger'"
+            v-if="data"
+            :icon="data.deleted_at ? 'pi pi-undo' : 'pi pi-trash'"
+            :severity="data.deleted_at ? 'secondary' : 'danger'"
             rounded
             @click="deleteOrRestoreSupplier(data, $event)"
           ></Button>

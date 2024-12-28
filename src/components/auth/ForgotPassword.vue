@@ -63,9 +63,7 @@ onUnmounted(() => $reset());
                 autofocus
                 maxlength="50"
                 v-model="formData.email"
-                :invalid="
-                  authErrors.email !== '' && authErrors.email !== undefined
-                "
+                :invalid="!!authErrors.email"
                 :disabled="loading"
               />
               <label for="email">Email</label>
@@ -95,10 +93,7 @@ onUnmounted(() => $reset());
               fluid
               maxlength="6"
               v-model="formData.verification_code"
-              :invalid="
-                authErrors.verification_code !== '' &&
-                authErrors.verification_code !== undefined
-              "
+              :invalid="!!authErrors.verification_code"
               :disabled="loading"
             />
             <label for="verification-code">Mã xác minh</label>
@@ -120,9 +115,7 @@ onUnmounted(() => $reset());
               toggleMask
               maxlength="50"
               v-model="formData.password"
-              :invalid="
-                authErrors.password !== '' && authErrors.password !== undefined
-              "
+              :invalid="!!authErrors.password"
               :disabled="loading"
             />
             <label for="password">Mật khẩu</label>
@@ -143,10 +136,7 @@ onUnmounted(() => $reset());
               fluid
               toggleMask
               maxlength="50"
-              :invalid="
-                authErrors.password_confirmation !== '' &&
-                authErrors.password_confirmation !== undefined
-              "
+              :invalid="!!authErrors.password_confirmation"
               v-model="formData.password_confirmation"
               :disabled="loading"
             />

@@ -116,39 +116,49 @@ function test() {
                 class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4"
                 style="height: 21rem"
               >
-                <div class="mb-4 flex justify-center">
-                  <div class="relative mx-auto">
-                    <Skeleton
-                      width="10rem"
-                      height="13rem"
-                      v-if="slotProps.data === undefined"
-                    ></Skeleton>
-                    <img
-                      v-else
-                      :src="
-                        slotProps.data.url
-                          ? slotProps.data.url.split(',')[0]
-                          : '/default_image.png'
-                      "
-                      :alt="slotProps.data.name"
-                      class="rounded object-cover w-full h-52"
-                    />
-                  </div>
-                </div>
-                <div
-                  class="mb-4 font-medium whitespace-nowrap text-ellipsis w-44 overflow-hidden"
+                <RouterLink
+                  :to="{
+                    name: 'product-infor',
+                    params: {
+                      id: slotProps.data ? slotProps.data.product_id : 'abc',
+                    },
+                  }"
                 >
-                  <Skeleton v-if="slotProps.data === undefined"></Skeleton>
-                  <span v-else v-tooltip="slotProps.data.name">{{
-                    slotProps.data.name
-                  }}</span>
-                </div>
+                  <div class="mb-4 flex justify-center">
+                    <div class="relative mx-auto">
+                      <Skeleton
+                        width="10rem"
+                        height="13rem"
+                        v-if="!slotProps.data"
+                      ></Skeleton>
+                      <img
+                        v-else
+                        :src="
+                          slotProps.data.url
+                            ? slotProps.data.url.split(',')[0]
+                            : '/default_image.png'
+                        "
+                        :alt="slotProps.data.name"
+                        class="rounded object-cover w-full h-52"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="mb-4 font-medium whitespace-nowrap text-ellipsis w-44 overflow-hidden"
+                    v-tooltip="
+                      slotProps.data ? slotProps.data.name : 'Hello World~'
+                    "
+                  >
+                    <Skeleton v-if="!slotProps.data"></Skeleton>
+                    <span v-else>{{ slotProps.data.name }}</span>
+                  </div>
+                </RouterLink>
                 <div class="flex justify-between items-center">
                   <div class="mt-0 font-semibold text-xl">
                     <Skeleton
                       height="2rem"
                       width="5rem"
-                      v-if="slotProps.data === undefined"
+                      v-if="!slotProps.data"
                     ></Skeleton>
                     <InputNumber
                       v-else
@@ -159,15 +169,14 @@ function test() {
                       readonly
                       :defaultValue="(slotProps.data.price as number)"
                       :pt="{
-                        pcInputText: { root: { style: 'border-style: none' } },
+                        pcInputText: {
+                          root: { style: 'border-style: none' },
+                        },
                       }"
                     />
                   </div>
                   <span>
-                    <Skeleton
-                      v-if="slotProps.data === undefined"
-                      size="3rem"
-                    ></Skeleton>
+                    <Skeleton v-if="!slotProps.data" size="3rem"></Skeleton>
                     <Button v-else icon="pi pi-shopping-cart" class="ml-2" />
                   </span>
                 </div>
@@ -211,41 +220,53 @@ function test() {
                       class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4"
                       style="height: 21rem"
                     >
-                      <div class="mb-4 flex justify-center">
-                        <div class="relative mx-auto">
-                          <Skeleton
-                            width="10rem"
-                            height="13rem"
-                            v-if="slotProps.data === undefined"
-                          ></Skeleton>
-                          <img
-                            v-else
-                            :src="
-                              slotProps.data.url
-                                ? slotProps.data.url.split(',')[0]
-                                : '/default_image.png'
-                            "
-                            :alt="slotProps.data.name"
-                            class="rounded object-cover w-full h-52"
-                          />
-                        </div>
-                      </div>
-                      <div
-                        class="mb-4 font-medium whitespace-nowrap text-ellipsis w-44 overflow-hidden"
+                      <RouterLink
+                        :to="{
+                          name: 'product-infor',
+                          params: {
+                            id: slotProps.data
+                              ? slotProps.data.product_id
+                              : 'abc',
+                          },
+                        }"
                       >
-                        <Skeleton
-                          v-if="slotProps.data === undefined"
-                        ></Skeleton>
-                        <span v-else v-tooltip="slotProps.data.name">{{
-                          slotProps.data.name
-                        }}</span>
-                      </div>
+                        <div class="mb-4 flex justify-center">
+                          <div class="relative mx-auto">
+                            <Skeleton
+                              width="10rem"
+                              height="13rem"
+                              v-if="!slotProps.data"
+                            ></Skeleton>
+                            <img
+                              v-else
+                              :src="
+                                slotProps.data.url
+                                  ? slotProps.data.url.split(',')[0]
+                                  : '/default_image.png'
+                              "
+                              :alt="slotProps.data.name"
+                              class="rounded object-cover w-full h-52"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          class="mb-4 font-medium whitespace-nowrap text-ellipsis w-44 overflow-hidden"
+                          v-tooltip="
+                            slotProps.data
+                              ? slotProps.data.name
+                              : 'Hello World~'
+                          "
+                        >
+                          <Skeleton v-if="!slotProps.data"></Skeleton>
+                          <span v-else>{{ slotProps.data.name }}</span>
+                        </div>
+                      </RouterLink>
                       <div class="flex justify-between items-center">
                         <div class="mt-0 font-semibold text-xl">
                           <Skeleton
                             height="2rem"
                             width="5rem"
-                            v-if="slotProps.data === undefined"
+                            v-if="!slotProps.data"
                           ></Skeleton>
                           <InputNumber
                             v-else
@@ -264,7 +285,7 @@ function test() {
                         </div>
                         <span>
                           <Skeleton
-                            v-if="slotProps.data === undefined"
+                            v-if="!slotProps.data"
                             size="3rem"
                           ></Skeleton>
                           <Button

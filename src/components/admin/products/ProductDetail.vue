@@ -49,11 +49,11 @@ const confirm = useConfirm();
 
 // Handle get supplier from server
 async function getSuppliers() {
-  if (suppliers.value === undefined || suppliers.value === null) {
+  if (!suppliers.value) {
     supplierLoading.value = true;
     await getAll("/api/admin/suppliers/list");
     setTimeout(() => {
-      results.value !== null ? (suppliers.value = results.value) : "";
+      results.value ? (suppliers.value = results.value) : "";
       supplierLoading.value = false;
     }, 1000);
   }
@@ -61,11 +61,11 @@ async function getSuppliers() {
 
 // Handle get category from server
 async function getCategories() {
-  if (categories.value === undefined || categories.value === null) {
+  if (!categories.value) {
     categoryLoading.value = true;
     await getAll("/api/admin/categories/list");
     setTimeout(() => {
-      results.value !== null ? (categories.value = results.value) : "";
+      results.value ? (categories.value = results.value) : "";
       categoryLoading.value = false;
     }, 1000);
   }
@@ -75,7 +75,7 @@ async function getCategories() {
 async function getImages() {
   await getAll(`/api/admin/banners/${formData.value.product_id}`);
   setTimeout(() => {
-    if (results.value !== null) {
+    if (results.value) {
       banners.value = results.value;
       totalPages.value = banners.value.length;
     }
@@ -138,7 +138,7 @@ onMounted(async () => {
   // If id is present then get the product information
   if (id) {
     await getAll(`/api/admin/products/${id}`);
-    if (results.value !== null) {
+    if (results.value) {
       formData.value = results.value;
       castSelectData();
       getImages();
@@ -169,10 +169,7 @@ onMounted(async () => {
                   autofocus
                   maxlength="50"
                   v-model="formData.name"
-                  :invalid="
-                    productErrors.name !== '' &&
-                    productErrors.name !== undefined
-                  "
+                  :invalid="!!productErrors.name"
                   :disabled="formLoading"
                 />
                 <label for="name">Tên sản phẩm</label>
@@ -194,10 +191,7 @@ onMounted(async () => {
                   fluid
                   maxlength="50"
                   v-model="formData.author"
-                  :invalid="
-                    productErrors.author !== '' &&
-                    productErrors.author !== undefined
-                  "
+                  :invalid="!!productErrors.author"
                   :disabled="formLoading"
                 />
                 <label for="author">Tên tác giả</label>
@@ -219,10 +213,7 @@ onMounted(async () => {
                   fluid
                   maxlength="50"
                   v-model="formData.translator"
-                  :invalid="
-                    productErrors.translator !== '' &&
-                    productErrors.translator !== undefined
-                  "
+                  :invalid="!!productErrors.translator"
                   :disabled="formLoading"
                 />
                 <label for="translator">Tên Người dịch</label>
@@ -248,13 +239,10 @@ onMounted(async () => {
                   :options="suppliers"
                   optionLabel="supplier_name"
                   :loading="supplierLoading"
-                  :invalid="
-                    productErrors.supplier_id !== '' &&
-                    productErrors.supplier_id !== undefined
-                  "
+                  :invalid="!!productErrors.supplier_id"
                   :disabled="formLoading"
-                  @click="getSuppliers"
                   @focus="getSuppliers"
+                  @click="getSuppliers"
                 >
                   <template #value="slotProps">
                     <div v-if="slotProps.value">
@@ -308,10 +296,7 @@ onMounted(async () => {
                   fluid
                   maxlength="50"
                   v-model="formData.publisher_name"
-                  :invalid="
-                    productErrors.publisher_name !== '' &&
-                    productErrors.publisher_name !== undefined
-                  "
+                  :invalid="!!productErrors.publisher_name"
                   :disabled="formLoading"
                 />
                 <label for="publisher-name">Tên nhà xuất bản</label>
@@ -334,10 +319,7 @@ onMounted(async () => {
                   iconDisplay="input"
                   showButtonBar
                   v-model="((formData.publish_year as unknown) as Date)"
-                  :invalid="
-                    productErrors.publish_year !== '' &&
-                    productErrors.publish_year !== undefined
-                  "
+                  :invalid="!!productErrors.publish_year"
                   :disabled="formLoading"
                 />
                 <label for="publish-year">Năm xuất bản</label>
@@ -363,13 +345,10 @@ onMounted(async () => {
                   :options="categories"
                   optionLabel="name"
                   :loading="categoryLoading"
-                  :invalid="
-                    productErrors.category_id !== '' &&
-                    productErrors.category_id !== undefined
-                  "
+                  :invalid="!!productErrors.category_id"
                   :disabled="formLoading"
-                  @click="getCategories"
                   @focus="getCategories"
+                  @click="getCategories"
                 >
                   <template #value="slotProps">
                     <div v-if="slotProps.value">
@@ -421,10 +400,7 @@ onMounted(async () => {
                   :max="9999"
                   suffix=" gr"
                   v-model="((formData.weight as unknown) as number)"
-                  :invalid="
-                    productErrors.weight !== '' &&
-                    productErrors.weight !== undefined
-                  "
+                  :invalid="!!productErrors.weight"
                   :disabled="formLoading"
                 />
                 <label for="weight">Khối lượng</label>
@@ -448,10 +424,7 @@ onMounted(async () => {
                   fluid
                   maxlength="50"
                   v-model="formData.cover_size"
-                  :invalid="
-                    productErrors.cover_size !== '' &&
-                    productErrors.cover_size !== undefined
-                  "
+                  :invalid="!!productErrors.cover_size"
                   :disabled="formLoading"
                 />
                 <label for="cover-size">Loại bìa</label>
@@ -474,10 +447,7 @@ onMounted(async () => {
                   :min="1"
                   :max="9999"
                   v-model="((formData.pages as unknown) as number)"
-                  :invalid="
-                    productErrors.pages !== '' &&
-                    productErrors.pages !== undefined
-                  "
+                  :invalid="!!productErrors.pages"
                   :disabled="formLoading"
                 />
                 <label for="pages">Số trang</label>
@@ -502,10 +472,7 @@ onMounted(async () => {
                   currency="VND"
                   locale="vi-VN"
                   v-model="(formData.price as number)"
-                  :invalid="
-                    productErrors.price !== 0 &&
-                    productErrors.price !== undefined
-                  "
+                  :invalid="!!productErrors.price"
                   :disabled="formLoading"
                 />
                 <label for="price">Giá tiền</label>
@@ -526,10 +493,7 @@ onMounted(async () => {
                   fluid
                   rows="1"
                   v-model="formData.description"
-                  :invalid="
-                    productErrors.description !== '' &&
-                    productErrors.description !== undefined
-                  "
+                  :invalid="!!productErrors.description"
                   :disabled="formLoading"
                 />
                 <label for="description">Mô tả</label>
@@ -585,7 +549,12 @@ onMounted(async () => {
             <div class="flex items-center">
               <h1 class="text-xl font-medium mt-6">Danh Sách Hình Ảnh</h1>
               <div class="flex justify-end grow">
-                <Button icon="pi pi-refresh" rounded raised @click="getImages" />
+                <Button
+                  icon="pi pi-refresh"
+                  rounded
+                  raised
+                  @click="getImages"
+                />
               </div>
             </div>
           </template>

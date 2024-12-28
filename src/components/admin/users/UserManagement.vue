@@ -50,7 +50,7 @@ async function getData() {
     }&search_query=${searchQuery.value}`
   );
   setTimeout(() => {
-    if (results.value !== null) {
+    if (results.value) {
       users.value = results.value.data;
       totalPages.value = results.value.total;
     } else if (page.value !== 0) {
@@ -66,10 +66,9 @@ const watcher = watchEffect(async () => await getData());
 
 // Delete/retore user
 const deleteOrRestoreUser = (data: User, event: any) => {
-  const isDeleted = data.deleted_at !== null;
   confirm.require({
     target: event.currentTarget,
-    message: isDeleted
+    message: data.deleted_at
       ? "Bạn có chắc là muốn khôi phục tài khoản này?"
       : "Bạn có chắc là muốn ngừng kích hoạt tài khoản này?",
     icon: "pi pi-info-circle",
@@ -79,11 +78,11 @@ const deleteOrRestoreUser = (data: User, event: any) => {
       outlined: true,
     },
     acceptProps: {
-      label: isDeleted ? "Khôi phục" : "Ngừng kích hoạt",
-      severity: isDeleted ? "" : "danger",
+      label: data.deleted_at ? "Khôi phục" : "Ngừng kích hoạt",
+      severity: data.deleted_at ? "" : "danger",
     },
     accept: async () => {
-      isDeleted
+      data.deleted_at
         ? await restoreUser(`/api/admin/users/restore/${data.id}`)
         : await deleteUser(`/api/admin/users/${data.id}`);
       await getData();
@@ -146,7 +145,7 @@ const deleteOrRestoreUser = (data: User, event: any) => {
       </template>
       <Column field="email" header="Email">
         <template #body="{ data }">
-          <Skeleton v-if="data === null"></Skeleton>
+          <Skeleton v-if="!data"></Skeleton>
           <p v-else class="max-w-52">{{ data.email }}</p>
         </template>
       </Column>
@@ -157,12 +156,12 @@ const deleteOrRestoreUser = (data: User, event: any) => {
         :key="col.field + '_' + index"
       >
         <template #body="{ data }">
-          <Skeleton v-if="data === null"></Skeleton>
+          <Skeleton v-if="!data"></Skeleton>
           <div v-else>
             <Tag
               v-if="col.field === 'deleted_at'"
-              :value="data[col.field] === null ? 'Kích hoạt' : 'Vô hiệu'"
-              :severity="data[col.field] === null ? 'success' : ''"
+              :value="!data[col.field] ? 'Kích hoạt' : 'Vô hiệu'"
+              :severity="!data[col.field] ? 'success' : ''"
             />
             <p v-else class="max-w-52">{{ data[col.field] }}</p>
           </div>
@@ -171,9 +170,9 @@ const deleteOrRestoreUser = (data: User, event: any) => {
       <Column class="w-24 space-x-2">
         <template #body="{ data }">
           <Button
-            v-if="data !== null"
-            :icon="data.deleted_at !== null ? 'pi pi-undo' : 'pi pi-trash'"
-            :severity="data.deleted_at !== null ? 'secondary' : 'danger'"
+            v-if="data"
+            :icon="data.deleted_at ? 'pi pi-undo' : 'pi pi-trash'"
+            :severity="data.deleted_at ? 'secondary' : 'danger'"
             rounded
             @click="deleteOrRestoreUser(data, $event)"
           ></Button>
