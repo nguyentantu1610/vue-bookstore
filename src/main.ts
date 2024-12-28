@@ -14,6 +14,7 @@ import Aura from "@primevue/themes/aura";
 import FocusTrap from "primevue/focustrap";
 import ToastService from "primevue/toastservice";
 import ConfirmationService from 'primevue/confirmationservice';
+import Tooltip from 'primevue/tooltip';
 
 // Define preset for PrimeVue
 const Noir = definePreset(Aura, {
@@ -86,6 +87,7 @@ app.use(PrimeVue, {
 });
 app.use(ToastService);
 app.directive("focustrap", FocusTrap);
+app.directive('tooltip', Tooltip);
 app.use(ConfirmationService);
 
 app.mount("#app");

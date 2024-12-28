@@ -10,12 +10,6 @@ const path = computed<string>(() => (isAdmin.value ? "admin" : "home"));
 const searchQuery = ref<string>("");
 const isDarkMode = ref<boolean>(false);
 const tieredMenu = ref();
-const menuItems = ref([
-  {
-    label: "Hello World",
-    icon: "pi pi-crown",
-  },
-]);
 const tieredMenuItems = ref([
   {
     label: "Tài khoản",
@@ -42,7 +36,7 @@ function toggleDarkMode() {
 
 <template>
   <header class="fixed top-0 right-0 left-0 z-50">
-    <Menubar :model="menuItems">
+    <Toolbar>
       <template #start>
         <a
           :href="`http://localhost:5173/${path}`"
@@ -50,27 +44,22 @@ function toggleDarkMode() {
         >
           <Avatar image="/menu-icon.png" class="mr-2" size="normal" />
           Bookstore
-      </a>
-      </template>
-      <template #item="{ item, props, hasSubmenu, root }">
-        <a class="flex items-center" :href="item.url" v-bind="props.action" v-if="!isAdmin">
-          <span :class="item.icon" />
-          <span>{{ item.label }}</span>
-          <i
-            v-if="hasSubmenu"
-            :class="[
-              'pi pi-angle-down ml-auto',
-              { 'pi-angle-down': root, 'pi-angle-right': !root },
-            ]"
-          ></i>
         </a>
       </template>
-      <template #end>
-        <div class="flex items-center gap-2">
-          <IconField class="sm:block hidden" v-if="!isAdmin">
+      <template #center>
+        <div class="flex items-center justify-center md:block hidden" style="width: 28rem;">
+          <IconField class="basis-5/6" v-if="!isAdmin">
             <InputIcon class="pi pi-search" />
-            <InputText v-model="searchQuery" placeholder="Tìm kiếm" />
+            <InputText
+              class="w-full"
+              v-model="searchQuery"
+              placeholder="Tìm kiếm"
+            />
           </IconField>
+        </div>
+      </template>
+      <template #end>
+        <div class="flex items-center gap-4">
           <ToggleSwitch v-model="isDarkMode" @click="toggleDarkMode">
             <template #handle="{ checked }">
               <i
@@ -110,6 +99,6 @@ function toggleDarkMode() {
           />
         </div>
       </template>
-    </Menubar>
+    </Toolbar>
   </header>
 </template>

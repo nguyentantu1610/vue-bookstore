@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
 
@@ -9,10 +8,16 @@ const router = createRouter({
     {
       // Home's route
       path: "/",
-      name: "home",
-      component: HomeView,
-      alias: ["/home"],
+      component: () => import("../views/HomeView.vue"),
       meta: { requiresAuth: false },
+      redirect: { name: "home" },
+      children: [
+        {
+          path: "/home",
+          name: "home",
+          component: () => import("../components/TheWelcome.vue"),
+        },
+      ],
     },
     {
       // Auth's routes
