@@ -21,17 +21,12 @@ const responsiveOptions = ref([
 const isFullscreen = ref<boolean>(false);
 const quantity = ref<number>(1);
 
-// Custom header
-function customHeader(): Headers {
-  const headers = new Headers();
-  headers.append("Accept", "application/json");
-  return headers;
-}
-
 // Check product exist in database
 onMounted(async () => {
   if (id) {
-    const { data } = await useGetFetch(`/api/products/${id}`, customHeader());
+    const headers = new Headers();
+    headers.append("Accept", "application/json");
+    const { data } = await useGetFetch(`/api/products/${id}`, headers);
     setTimeout(() => {
       data.data ? (product.value = data.data) : "";
     }, 4000);

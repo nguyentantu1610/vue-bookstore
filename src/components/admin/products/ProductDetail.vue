@@ -51,7 +51,7 @@ const confirm = useConfirm();
 async function getSuppliers() {
   if (!suppliers.value) {
     supplierLoading.value = true;
-    await getAll("/api/admin/suppliers/list");
+    await getAll("/api/suppliers/list");
     setTimeout(() => {
       results.value ? (suppliers.value = results.value) : "";
       supplierLoading.value = false;
@@ -63,7 +63,7 @@ async function getSuppliers() {
 async function getCategories() {
   if (!categories.value) {
     categoryLoading.value = true;
-    await getAll("/api/admin/categories/list");
+    await getAll("/api/categories/list");
     setTimeout(() => {
       results.value ? (categories.value = results.value) : "";
       categoryLoading.value = false;

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useGetFetch } from "@/composables/custom-fetch";
+import type Product from "@/interfaces/product";
+import router from "@/router";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
@@ -7,7 +10,6 @@ const { isAdmin, name } = storeToRefs(useAuthStore());
 const { logout } = useAuthStore();
 // Init data
 const path = computed<string>(() => (isAdmin.value ? "admin" : "home"));
-const searchQuery = ref<string>("");
 const isDarkMode = ref<boolean>(false);
 const tieredMenu = ref();
 const tieredMenuItems = ref([
@@ -22,6 +24,8 @@ const tieredMenuItems = ref([
     command: () => logout(),
   },
 ]);
+const items = ref<Array<Product> | undefined>();
+const isLoading = ref<boolean>(false);
 
 // Show tiered menu
 const toggle = (event: Event) => {
@@ -31,6 +35,29 @@ const toggle = (event: Event) => {
 // Change light/dark mode
 function toggleDarkMode() {
   document.documentElement.classList.toggle("dark");
+}
+
+async function search(event: any) {
+  isLoading.value = true;
+  const headers = new Headers();
+  headers.append("Accept", "application/json");
+  const { data, status } = await useGetFetch(
+    `/api/products/search?search_query=${event.query}`,
+    headers
+  );
+  setTimeout(() => {
+    status >= 200 && status <= 299
+      ? (items.value = data.data)
+      : (items.value = undefined);
+    isLoading.value = false;
+  }, 1000);
+}
+
+function onSelect(event: any) {
+  return router.push({
+    name: "product-infor",
+    params: { id: event.value.product_id },
+  });
 }
 </script>
 
@@ -47,15 +74,58 @@ function toggleDarkMode() {
         </a>
       </template>
       <template #center>
-        <div class="flex items-center justify-center md:block hidden" style="width: 28rem;">
-          <IconField class="basis-5/6" v-if="!isAdmin">
-            <InputIcon class="pi pi-search" />
-            <InputText
-              class="w-full"
-              v-model="searchQuery"
+        <div
+          class="flex items-center justify-center md:block hidden"
+          style="width: 28rem"
+        >
+          <InputGroup class="basis-5/6" v-if="!isAdmin">
+            <AutoComplete
               placeholder="Tìm kiếm"
-            />
-          </IconField>
+              class="w-full"
+              optionLabel="name"
+              :loading="isLoading"
+              :pt="{
+                loader: { style: 'z-index: 2;' },
+                listContainer: { class: '!max-h-96' },
+              }"
+              :suggestions="items"
+              @complete="search"
+              @option-select="onSelect"
+            >
+              <template #option="slotProps">
+                <RouterLink
+                  :to="{
+                    name: 'product-infor',
+                    params: { id: slotProps.option.product_id },
+                  }"
+                >
+                  <div class="flex items-center gap-2">
+                    <img
+                      :alt="slotProps.option.name"
+                      :src="
+                        slotProps.option.url
+                          ? slotProps.option.url.split(',')[0]
+                          : '/default_image.png'
+                      "
+                      class="w-16 h-18 object-cover rounded"
+                    />
+                    <div
+                      class="whitespace-nowrap text-ellipsis w-80 overflow-hidden"
+                    >
+                      {{ slotProps.option.name }}
+                    </div>
+                  </div>
+                </RouterLink>
+              </template>
+              <template #header>
+                <div class="font-medium px-3 py-2">Sản Phẩm Phù Hợp</div>
+              </template>
+              <template #empty>Không Có.</template>
+            </AutoComplete>
+            <InputGroupAddon>
+              <InputIcon class="pi pi-search" />
+            </InputGroupAddon>
+          </InputGroup>
         </div>
       </template>
       <template #end>

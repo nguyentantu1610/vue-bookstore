@@ -39,57 +39,33 @@ const tabs = ref([
   { title: "Manga", content: mangas, value: "1" },
 ]);
 
-// Custom header
-function customHeader(): Headers {
+// Get data from server
+async function getData(uri: string) {
   const headers = new Headers();
   headers.append("Accept", "application/json");
-  return headers;
+  const { data, status } = await useGetFetch(uri, headers);
+  return status >= 200 && status <= 299 ? data.data : null;
 }
 
 // Handle load latest product
 async function onLoadLatestProduct() {
   latestProducts.value = new Array<Product>(5);
-  const { data, status } = await useGetFetch(
-    "/api/latest-products",
-    customHeader()
-  );
-  setTimeout(() => {
-    status >= 200 && status <= 299
-      ? (latestProducts.value = data.data)
-      : (latestProducts.value = null);
-  }, 1000);
+  const data = await getData("/api/latest-products");
+  setTimeout(() => (latestProducts.value = data), 1000);
 }
 
 // Handle load novels
 async function onLoadNovels() {
   novels.value = new Array<Product>(5);
-  const { data, status } = await useGetFetch(
-    "/api/products/category/16",
-    customHeader()
-  );
-  setTimeout(() => {
-    status >= 200 && status <= 299
-      ? (novels.value = data.data)
-      : (novels.value = null);
-  }, 1000);
+  const data = await getData("/api/products/category/16");
+  setTimeout(() => (novels.value = data), 1000);
 }
 
 // Handle load mangas
 async function onLoadMangas() {
   mangas.value = new Array<Product>(5);
-  const { data, status } = await useGetFetch(
-    "/api/products/category/17",
-    customHeader()
-  );
-  setTimeout(() => {
-    status >= 200 && status <= 299
-      ? (mangas.value = data.data)
-      : (mangas.value = null);
-  }, 1000);
-}
-
-function test() {
-  console.log("Hello World~");
+  const data = await getData("/api/products/category/17");
+  setTimeout(() => (mangas.value = data), 1000);
 }
 
 // onMounted(async () => await onLoadLatestProduct());

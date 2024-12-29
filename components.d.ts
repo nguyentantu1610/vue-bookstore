@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AdminDashboard: typeof import('./src/components/admin/AdminDashboard.vue')['default']
     Auth: typeof import('./src/components/auth/Auth.vue')['default']
+    AutoComplete: typeof import('primevue/autocomplete')['default']
     Avatar: typeof import('primevue/avatar')['default']
     Badge: typeof import('primevue/badge')['default']
     Button: typeof import('primevue/button')['default']
