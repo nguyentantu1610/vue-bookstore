@@ -170,7 +170,9 @@ function test() {
                       :defaultValue="(slotProps.data.price as number)"
                       :pt="{
                         pcInputText: {
-                          root: { style: 'border-style: none' },
+                          root: {
+                            class: '!border-none !p-0 !shadow-none !bg-inherit',
+                          },
                         },
                       }"
                     />
@@ -278,7 +280,10 @@ function test() {
                             :defaultValue="(slotProps.data.price as number)"
                             :pt="{
                               pcInputText: {
-                                root: { style: 'border-style: none' },
+                                root: {
+                                  class:
+                                    '!border-none !p-0 !shadow-none !bg-inherit',
+                                },
                               },
                             }"
                           />
