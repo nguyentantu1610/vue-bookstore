@@ -22,6 +22,11 @@ const router = createRouter({
           name: "product-infor",
           component: () => import("../components/home/ProductInformation.vue"),
         },
+        {
+          path: "/products/advanced-search/:name?",
+          name: "product-filter",
+          component: () => import("../components/home/ProductFilter.vue"),
+        },
       ],
     },
     {

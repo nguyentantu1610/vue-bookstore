@@ -26,6 +26,7 @@ const tieredMenuItems = ref([
 ]);
 const items = ref<Array<Product> | undefined>();
 const isLoading = ref<boolean>(false);
+const search_query = ref<string>("");
 
 // Show tiered menu
 const toggle = (event: Event) => {
@@ -37,6 +38,7 @@ function toggleDarkMode() {
   document.documentElement.classList.toggle("dark");
 }
 
+// Handle search products
 async function search(event: any) {
   isLoading.value = true;
   const headers = new Headers();
@@ -53,12 +55,23 @@ async function search(event: any) {
   }, 1000);
 }
 
-function onSelect(event: any) {
-  return router.push({
-    name: "product-infor",
-    params: { id: event.value.product_id },
-  });
-}
+// Go to product information
+const onSelect = (event: any) =>
+  typeof search_query.value === "object"
+    ? router.push({
+        name: "product-infor",
+        params: { id: event.value.product_id },
+      })
+    : "";
+
+// Go to product filter
+const openFilter = () =>
+  typeof search_query.value === "string"
+    ? router.push({
+        name: "product-filter",
+        params: { name: search_query.value },
+      })
+    : "";
 </script>
 
 <template>
@@ -80,6 +93,7 @@ function onSelect(event: any) {
         >
           <InputGroup class="basis-5/6" v-if="!isAdmin">
             <AutoComplete
+              v-model="search_query"
               placeholder="Tìm kiếm"
               class="w-full"
               optionLabel="name"
@@ -91,6 +105,7 @@ function onSelect(event: any) {
               :suggestions="items"
               @complete="search"
               @option-select="onSelect"
+              @keyup.enter="openFilter"
             >
               <template #option="slotProps">
                 <RouterLink

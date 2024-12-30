@@ -40,8 +40,8 @@ const formData = ref<Product>({
 const suppliers = ref();
 const categories = ref();
 const banners = ref();
-const supplierLoading = ref<boolean>(false);
-const categoryLoading = ref<boolean>(false);
+const suppliersLoading = ref<boolean>(false);
+const categoriesLoading = ref<boolean>(false);
 const formLoading = ref<boolean>(false);
 const images = useTemplateRef<HTMLInputElement>("product-images");
 const totalPages = ref<number>(0);
@@ -49,26 +49,22 @@ const confirm = useConfirm();
 
 // Handle get supplier from server
 async function getSuppliers() {
-  if (!suppliers.value) {
-    supplierLoading.value = true;
-    await getAll("/api/suppliers/list");
-    setTimeout(() => {
-      results.value ? (suppliers.value = results.value) : "";
-      supplierLoading.value = false;
-    }, 1000);
-  }
+  suppliersLoading.value = true;
+  await getAll("/api/suppliers/list");
+  setTimeout(() => {
+    results.value ? (suppliers.value = results.value) : "";
+    suppliersLoading.value = false;
+  }, 1000);
 }
 
 // Handle get category from server
 async function getCategories() {
-  if (!categories.value) {
-    categoryLoading.value = true;
-    await getAll("/api/categories/list");
-    setTimeout(() => {
-      results.value ? (categories.value = results.value) : "";
-      categoryLoading.value = false;
-    }, 1000);
-  }
+  categoriesLoading.value = true;
+  await getAll("/api/categories/list");
+  setTimeout(() => {
+    results.value ? (categories.value = results.value) : "";
+    categoriesLoading.value = false;
+  }, 1000);
 }
 
 // Handle get product's images
@@ -235,22 +231,29 @@ onMounted(async () => {
                   checkmark
                   :highlightOnSelect="false"
                   filter
+                  :pt="{ overlay: { class: 'w-60' } }"
                   v-model="formData.supplier_id"
                   :options="suppliers"
                   optionLabel="supplier_name"
-                  :loading="supplierLoading"
+                  :loading="suppliersLoading"
                   :invalid="!!productErrors.supplier_id"
                   :disabled="formLoading"
-                  @focus="getSuppliers"
-                  @click="getSuppliers"
+                  @click.once="getSuppliers"
                 >
                   <template #value="slotProps">
-                    <div v-if="slotProps.value">
+                    <div
+                      v-if="slotProps.value"
+                      class="whitespace-nowrap text-ellipsis w-44 overflow-hidden"
+                    >
                       {{ slotProps.value.supplier_name }}
                     </div>
                   </template>
                   <template #option="slotProps">
-                    <div>{{ slotProps.option.supplier_name }}</div>
+                    <div
+                      class="whitespace-nowrap text-ellipsis w-48 overflow-hidden"
+                    >
+                      {{ slotProps.option.supplier_name }}
+                    </div>
                   </template>
                   <template #dropdownicon>
                     <i class="pi pi-building" />
@@ -272,9 +275,10 @@ onMounted(async () => {
                       />
                     </div>
                   </template>
+                  <template #empty> Không tìm thấy </template>
                 </Select>
                 <label for="supplier-id">
-                  {{ supplierLoading ? "Đang tải..." : "Tên nhà cung cấp" }}
+                  {{ suppliersLoading ? "Đang tải..." : "Tên nhà cung cấp" }}
                 </label>
               </FloatLabel>
               <Message
@@ -341,22 +345,29 @@ onMounted(async () => {
                   checkmark
                   :highlightOnSelect="false"
                   filter
+                  :pt="{ overlay: { class: 'w-60' } }"
                   v-model="formData.category_id"
                   :options="categories"
                   optionLabel="name"
-                  :loading="categoryLoading"
+                  :loading="categoriesLoading"
                   :invalid="!!productErrors.category_id"
                   :disabled="formLoading"
-                  @focus="getCategories"
-                  @click="getCategories"
+                  @click.once="getCategories"
                 >
                   <template #value="slotProps">
-                    <div v-if="slotProps.value">
+                    <div
+                      v-if="slotProps.value"
+                      class="whitespace-nowrap text-ellipsis w-44 overflow-hidden"
+                    >
                       {{ slotProps.value.name }}
                     </div>
                   </template>
                   <template #option="slotProps">
-                    <div>{{ slotProps.option.name }}</div>
+                    <div
+                      class="whitespace-nowrap text-ellipsis w-48 overflow-hidden"
+                    >
+                      {{ slotProps.option.name }}
+                    </div>
                   </template>
                   <template #dropdownicon><i class="pi pi-tag" /></template>
                   <template #header>
@@ -376,9 +387,10 @@ onMounted(async () => {
                       />
                     </div>
                   </template>
+                  <template #empty> Không tìm thấy </template>
                 </Select>
                 <label for="category-id">
-                  {{ categoryLoading ? "Đang tải..." : "Tên danh mục" }}
+                  {{ categoriesLoading ? "Đang tải..." : "Tên danh mục" }}
                 </label>
               </FloatLabel>
               <Message
