@@ -18,7 +18,7 @@ const tieredMenuItems = ref([
   {
     label: "Tài khoản",
     icon: "pi pi-cog",
-    url: "/login",
+    command: () => router.push({ name: "profile" }),
   },
   {
     label: "Đăng xuất",

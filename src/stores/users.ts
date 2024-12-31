@@ -24,6 +24,11 @@ export const useUsersStore = defineStore("users", () => {
     deleted_at: "",
   };
   let headers = new Headers();
+  const userErrors = ref<User>(initData);
+
+  function $reset() {
+    userErrors.value = initData;
+  }
 
   // Custom headers for fetch
   function customHeaders() {
@@ -90,6 +95,38 @@ export const useUsersStore = defineStore("users", () => {
   }
 
   /**
+   * This function to update user
+   *
+   * @param {string} uri The fetch uri
+   * @param {Supplier} formData The fetch body
+   */
+  async function updateUser(uri: string, formData: User) {
+    $reset();
+    customHeaders();
+    const { data, status } = await usePostOrPatchFetch<User>(
+      "PATCH",
+      uri,
+      formData,
+      headers
+    );
+    if (status >= 200 && status <= 299) {
+      return toast.add({
+        severity: "success",
+        summary: "Thành công",
+        detail: data.message,
+        life: 3000,
+      });
+    }
+    status === 422 ? (userErrors.value = data.errors) : "";
+    toast.add({
+      severity: "error",
+      summary: "Lỗi",
+      detail: data.message,
+      life: 3000,
+    });
+  }
+
+  /**
    * This function to delete user
    *
    * @param uri The fetch uri
@@ -146,5 +183,8 @@ export const useUsersStore = defineStore("users", () => {
     deleteUser,
     exportData,
     restoreUser,
+    $reset,
+    userErrors,
+    updateUser,
   };
 });

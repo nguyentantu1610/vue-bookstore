@@ -252,7 +252,6 @@ async function onFileSelect(event: any) {
             <InputMask
               id="phone-number"
               fluid
-              maxlength="50"
               v-model="formData.phone_number"
               mask="0999999999"
               :invalid="!!supplierErrors.phone_number"

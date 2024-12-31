@@ -116,7 +116,7 @@ const advancedSearch = async () => await getProducts();
 <template>
   <div class="flex flex-col items-center">
     <Card class="w-5/6 mt-8">
-      <template #title><i class="pi pi-filter-slash" /> Bộ Lọc</template>
+      <template #title><i class="pi pi-filter" /> Bộ Lọc</template>
       <template #content>
         <div class="flex flex-row gap-4 mb-6 mt-6">
           <FloatLabel variant="on" class="basis-1/5">
