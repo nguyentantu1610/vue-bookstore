@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import { useToast } from "primevue";
 import type Cart from "@/interfaces/cart";
 import { ref } from "vue";
+import { usePostOrPatchFetch } from "@/composables/custom-fetch";
+import router from "@/router";
 
 export const useCartStore = defineStore("cart", () => {
   const toast = useToast();
@@ -18,7 +20,7 @@ export const useCartStore = defineStore("cart", () => {
 
   // Add cart to carts
   function setCart(cart: Cart, quantity: number = 1) {
-    cart.quantity = quantity;
+    cart.quantity = quantity ? quantity : 1;
     const cartItem = carts.value.find(
       (item) => item.product_id === cart.product_id
     );
@@ -34,6 +36,7 @@ export const useCartStore = defineStore("cart", () => {
 
   // Update cart
   function updateCart(id: string, quantity: number) {
+    quantity ? "" : quantity = 1;
     const cartItem = carts.value.find((item) => item.product_id === id);
     cartItem ? (cartItem.quantity = quantity) : console.log(`${id} not found!`);
     localStorage.setItem("carts", JSON.stringify(carts.value));
@@ -48,5 +51,43 @@ export const useCartStore = defineStore("cart", () => {
     localStorage.setItem("carts", JSON.stringify(carts.value));
   }
 
-  return { carts, getCart, setCart, updateCart, removeCart };
+  /**
+   * This function to create order
+   *
+   */
+  async function createOrder() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const headers = new Headers();
+      headers.append("Accept", "application/json");
+      headers.append("Content-Type", "application/json");
+      headers.append("Authorization", `Bearer ${token}`);
+      const { data, status } = await usePostOrPatchFetch<any>(
+        "POST",
+        "/api/user/carts",
+        { carts: carts.value },
+        headers
+      );
+      if (status >= 200 && status <= 299) {
+        router.push({ name: "profile" })
+        carts.value = new Array<Cart>();
+        localStorage.setItem('carts', JSON.stringify(carts.value));
+        return toast.add({
+          severity: "success",
+          summary: "Thành công",
+          detail: data.message,
+          life: 3000,
+        });
+      }
+      return toast.add({
+        severity: "error",
+        summary: "Lỗi",
+        detail: data.message,
+        life: 3000,
+      });
+    }
+    return router.push({ name: "login" });
+  }
+
+  return { carts, getCart, setCart, updateCart, removeCart, createOrder };
 });

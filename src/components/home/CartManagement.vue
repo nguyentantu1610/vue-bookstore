@@ -3,18 +3,59 @@ import { useCartStore } from "@/stores/cart";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { FilterMatchMode } from "@primevue/core/api";
+import { useConfirm } from "primevue/useconfirm";
+import { useAuthStore } from "@/stores/auth";
+import router from "@/router";
 
 const { updateCart, removeCart } = useCartStore();
 const { carts } = storeToRefs(useCartStore());
+const { name } = storeToRefs(useAuthStore());
 const filters = ref({
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 });
+const confirm = useConfirm();
+
+// Enter order if logined
+const enterOrder = () =>
+  name.value
+    ? router.push({ name: "order-detail" })
+    : confirm.require({
+        message: "Vui lòng đăng nhập để tiếp tục",
+        header: "Thông báo",
+        icon: "pi pi-infor-circle",
+        rejectProps: {
+          label: "Huỷ",
+          severity: "secondary",
+          outlined: true,
+        },
+        acceptProps: {
+          label: "Đăng nhập",
+        },
+        accept: () => router.push({ name: "login" }),
+        reject: () => console.log("Cancel enter order"),
+      });
+
+// Redirect to product information
+const onRowSelect = (event: any) => 
+   router.push({ name: "product-infor", params: {id: event.data.product_id} })
+;
 </script>
 
 <template>
   <div class="flex flex-col items-center">
-    <Card class="w-5/6 mt-8">
-      <template #title>Giỏ Hàng</template>
+    <Card class="w-5/6 mt-8 mb-6">
+      <template #title>
+        <div class="flex items-center">
+          <p>Giỏ Hàng</p>
+          <div class="flex justify-end grow">
+            <Button
+              label="Đặt Hàng"
+              @click="enterOrder()"
+              :disabled="!carts.length"
+            ></Button>
+          </div>
+        </div>
+      </template>
       <template #content>
         <DataTable
           :value="carts"
@@ -31,6 +72,9 @@ const filters = ref({
           columnResizeMode="expand"
           tableStyle="min-width: 50rem"
           class="mt-3"
+          selectionMode="single"
+          :metaKeySelection="true"
+          @rowSelect="onRowSelect"
         >
           <Column field="url" header="Hình ảnh" class="w-40">
             <template #body="{ data }">
@@ -56,7 +100,7 @@ const filters = ref({
           </Column>
           <Column field="price" header="Giá" sortable>
             <template #body="{ data }">
-              <p class="place-self-center">
+              <p class="place-self-center text-xl font-bold">
                 {{
                   data.price.toLocaleString("vi-VN", {
                     style: "currency",
