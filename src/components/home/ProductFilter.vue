@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useGetFetch } from "@/composables/custom-fetch";
+import { useCartStore } from "@/stores/cart";
 import { Card } from "primevue";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
+const { setCart } = useCartStore();
 // Init data
 const name = computed<string>(() =>
   route.params.name ? (route.params.name as string) : ""
@@ -288,49 +290,44 @@ const advancedSearch = async () => await getProducts();
                 <div
                   class="p-6 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded flex flex-col"
                 >
-                  <div class="bg-surface-50 flex justify-center rounded p-4">
-                    <div class="relative mx-auto">
-                      <img
-                        class="rounded object-cover w-44 h-56"
-                        :src="item.url.split(',')[0]"
-                        :alt="item.name"
-                      />
-                    </div>
-                  </div>
-                  <div class="pt-6">
-                    <div class="flex flex-col gap-2">
+                  <div class="bg-surface-50 rounded flex justify-center p-4">
+                    <RouterLink
+                      :to="{
+                        name: 'product-infor',
+                        params: { id: item.product_id },
+                      }"
+                      class="flex flex-col"
+                    >
+                      <div class="relative mx-auto">
+                        <img
+                          class="rounded object-cover w-44 h-56"
+                          :src="item.url.split(',')[0]"
+                          :alt="item.name"
+                        />
+                      </div>
                       <div
-                        class="text-lg font-medium whitespace-nowrap text-ellipsis w-60 overflow-hidden"
+                        class="text-lg font-medium whitespace-nowrap text-ellipsis w-60 overflow-hidden pt-6"
                         v-tooltip="item.name"
                       >
                         {{ item.name }}
                       </div>
-                      <span class="text-2xl font-semibold">
-                        <InputNumber
-                          mode="currency"
-                          currency="VND"
-                          locale="vi-VN"
-                          fluid
-                          readonly
-                          :defaultValue="(item.price as number)"
-                          :pt="{
-                            pcInputText: {
-                              root: {
-                                class:
-                                  '!border-none !p-0 !shadow-none !bg-inherit',
-                              },
-                            },
-                          }"
-                        />
-                      </span>
-                      <div class="flex gap-2">
-                        <Button
-                          icon="pi pi-shopping-cart"
-                          label="Thêm giỏ hàng"
-                          class="flex-auto whitespace-nowrap"
-                        ></Button>
-                      </div>
+                    </RouterLink>
+                  </div>
+                  <div class="flex justify-between items-center pt-3">
+                    <div class="text-2xl font-semibold">
+                      <p>
+                        {{
+                          item.price.toLocaleString("vi-VN", {
+                            style: "currency",
+                            currency: "VND",
+                          })
+                        }}
+                      </p>
                     </div>
+                    <Button
+                      icon="pi pi-shopping-cart"
+                      @click="setCart(item)"
+                    ></Button>
                   </div>
                 </div>
               </div>

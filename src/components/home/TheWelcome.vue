@@ -2,7 +2,9 @@
 import { onMounted, ref } from "vue";
 import type Product from "@/interfaces/product";
 import { useGetFetch } from "@/composables/custom-fetch";
+import { useCartStore } from "@/stores/cart";
 
+const { setCart } = useCartStore();
 // Init data
 const responsiveOptions = ref([
   {
@@ -136,26 +138,23 @@ async function onLoadMangas() {
                       width="5rem"
                       v-if="!slotProps.data"
                     ></Skeleton>
-                    <InputNumber
-                      v-else
-                      mode="currency"
-                      currency="VND"
-                      locale="vi-VN"
-                      fluid
-                      readonly
-                      :defaultValue="(slotProps.data.price as number)"
-                      :pt="{
-                        pcInputText: {
-                          root: {
-                            class: '!border-none !p-0 !shadow-none !bg-inherit',
-                          },
-                        },
-                      }"
-                    />
+                    <p v-else>
+                      {{
+                        slotProps.data.price.toLocaleString("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                        })
+                      }}
+                    </p>
                   </div>
                   <span>
                     <Skeleton v-if="!slotProps.data" size="3rem"></Skeleton>
-                    <Button v-else icon="pi pi-shopping-cart" class="ml-2" />
+                    <Button
+                      v-else
+                      icon="pi pi-shopping-cart"
+                      class="ml-2"
+                      @click="setCart(slotProps.data)"
+                    />
                   </span>
                 </div>
               </div>
@@ -246,23 +245,14 @@ async function onLoadMangas() {
                             width="5rem"
                             v-if="!slotProps.data"
                           ></Skeleton>
-                          <InputNumber
-                            v-else
-                            mode="currency"
-                            currency="VND"
-                            locale="vi-VN"
-                            fluid
-                            readonly
-                            :defaultValue="(slotProps.data.price as number)"
-                            :pt="{
-                              pcInputText: {
-                                root: {
-                                  class:
-                                    '!border-none !p-0 !shadow-none !bg-inherit',
-                                },
-                              },
-                            }"
-                          />
+                          <p v-else>
+                            {{
+                              slotProps.data.price.toLocaleString("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              })
+                            }}
+                          </p>
                         </div>
                         <span>
                           <Skeleton
@@ -273,6 +263,7 @@ async function onLoadMangas() {
                             v-else
                             icon="pi pi-shopping-cart"
                             class="ml-2"
+                            @click="setCart(slotProps.data)"
                           />
                         </span>
                       </div>

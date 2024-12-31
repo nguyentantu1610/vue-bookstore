@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
+import { useCartStore } from "@/stores/cart";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +27,11 @@ const router = createRouter({
           path: "/products/advanced-search/:name?",
           name: "product-filter",
           component: () => import("../components/home/ProductFilter.vue"),
+        },
+        {
+          path: "/carts",
+          name: "carts",
+          component: () => import("../components/home/CartManagement.vue"),
         },
       ],
     },
@@ -121,6 +127,10 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const { checkUser } = useAuthStore();
   const { name, isAdmin } = storeToRefs(useAuthStore());
+  const { getCart } = useCartStore();
+
+  // Check cart
+  !to.meta.requiresAdmin ? getCart() : "";
 
   await checkUser();
   // Redirect to home if this user has logined

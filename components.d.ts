@@ -15,6 +15,7 @@ declare module 'vue' {
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
     Carousel: typeof import('primevue/carousel')['default']
+    CartManagement: typeof import('./src/components/home/CartManagement.vue')['default']
     CategoryMain: typeof import('./src/components/admin/category/CategoryMain.vue')['default']
     CategoryManagement: typeof import('./src/components/admin/categories/CategoryManagement.vue')['default']
     Column: typeof import('primevue/column')['default']

@@ -3,11 +3,13 @@ import { useGetFetch } from "@/composables/custom-fetch";
 import type Product from "@/interfaces/product";
 import router from "@/router";
 import { useAuthStore } from "@/stores/auth";
+import { useCartStore } from "@/stores/cart";
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
 const { isAdmin, name } = storeToRefs(useAuthStore());
 const { logout } = useAuthStore();
+const { carts } = storeToRefs(useCartStore());
 // Init data
 const path = computed<string>(() => (isAdmin.value ? "admin" : "home"));
 const isDarkMode = ref<boolean>(false);
@@ -72,6 +74,9 @@ const openFilter = () =>
         params: { name: search_query.value },
       })
     : "";
+
+// Go to carts
+const enterCart = () => router.push({ name: "carts" });
 </script>
 
 <template>
@@ -144,7 +149,16 @@ const openFilter = () =>
         </div>
       </template>
       <template #end>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-6">
+          <OverlayBadge
+            :value="carts.length"
+            size="small"
+            class="cursor-pointer"
+            v-if="!isAdmin"
+            @click="enterCart"
+          >
+            <i class="pi pi-shopping-cart" style="font-size: 1.4rem" />
+          </OverlayBadge>
           <ToggleSwitch v-model="isDarkMode" @click="toggleDarkMode">
             <template #handle="{ checked }">
               <i
@@ -155,9 +169,6 @@ const openFilter = () =>
               />
             </template>
           </ToggleSwitch>
-          <OverlayBadge value="2" size="small" v-if="name && !isAdmin">
-            <i class="pi pi-shopping-cart" style="font-size: 1.5rem" />
-          </OverlayBadge>
           <Button
             type="button"
             icon="pi pi-user"

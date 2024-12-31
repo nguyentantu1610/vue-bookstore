@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { useGetFetch } from "@/composables/custom-fetch";
+import type Cart from "@/interfaces/cart";
 import type Product from "@/interfaces/product";
+import { useCartStore } from "@/stores/cart";
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
+const { setCart } = useCartStore();
 // Init data
 const id = route.params.id ? route.params.id : null;
 const product = ref<Product>();
@@ -99,6 +102,7 @@ onMounted(async () => {
                   v-if="product"
                   label="Thêm Giỏ Hàng"
                   icon="pi pi-shopping-cart"
+                  @click="setCart(product as unknown as Cart, quantity)"
                 />
                 <Skeleton v-else shape="circle" size="5rem"></Skeleton>
               </div>
@@ -154,24 +158,15 @@ onMounted(async () => {
             </p>
             <Skeleton v-else width="20rem"></Skeleton>
           </div>
-          <div class="mt-2 font-bold">
-            <InputNumber
-              v-if="product"
-              mode="currency"
-              currency="VND"
-              locale="vi-VN"
-              fluid
-              readonly
-              :defaultValue="(product?.price as number)"
-              :pt="{
-                pcInputText: {
-                  root: {
-                    class:
-                      '!border-none !text-2xl !p-0 !shadow-none !bg-inherit',
-                  },
-                },
-              }"
-            />
+          <div class="mt-2 font-bold text-xl">
+            <p v-if="product">
+              {{
+                product?.price.toLocaleString("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                })
+              }}
+            </p>
             <Skeleton v-else width="10rem" height="2rem"></Skeleton>
           </div>
         </template>
