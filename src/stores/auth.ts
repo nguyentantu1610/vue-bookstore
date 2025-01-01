@@ -110,6 +110,7 @@ export const useAuthStore = defineStore("auth", () => {
         });
       }
       localStorage.removeItem("token");
+      localStorage.removeItem("carts");
     }
     router.push({ name: "login" });
     name.value = "";

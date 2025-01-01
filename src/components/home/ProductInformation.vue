@@ -3,13 +3,12 @@ import { useGetFetch } from "@/composables/custom-fetch";
 import type Cart from "@/interfaces/cart";
 import type Product from "@/interfaces/product";
 import { useCartStore } from "@/stores/cart";
-import { onMounted, ref } from "vue";
+import { ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 const { setCart } = useCartStore();
 // Init data
-const id = route.params.id ? route.params.id : null;
 const product = ref<Product>();
 const responsiveOptions = ref([
   {
@@ -24,12 +23,16 @@ const responsiveOptions = ref([
 const isFullscreen = ref<boolean>(false);
 const quantity = ref<number>(1);
 
-// Check product exist in database
-onMounted(async () => {
-  if (id) {
+// Watch params change
+watchEffect(async () => {
+  if (route.params.id) {
+    product.value = undefined;
     const headers = new Headers();
     headers.append("Accept", "application/json");
-    const { data } = await useGetFetch(`/api/products/${id}`, headers);
+    const { data } = await useGetFetch(
+      `/api/products/${route.params.id}`,
+      headers
+    );
     setTimeout(() => {
       data.data ? (product.value = data.data) : "";
     }, 4000);
