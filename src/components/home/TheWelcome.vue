@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import type Product from "@/interfaces/product";
 import { useGetFetch } from "@/composables/custom-fetch";
 import { useCartStore } from "@/stores/cart";
@@ -40,6 +40,7 @@ const tabs = ref([
   { title: "Light Novel", content: novels, value: "0" },
   { title: "Manga", content: mangas, value: "1" },
 ]);
+const banners = ref();
 
 // Get data from server
 async function getData(uri: string) {
@@ -70,11 +71,32 @@ async function onLoadMangas() {
   setTimeout(() => (mangas.value = data), 1000);
 }
 
-// onMounted(async () => await onLoadLatestProduct());
+// Handle load banners
+async function onLoadBanners() {
+  const data = await getData("/api/banners");
+  setTimeout(() => (banners.value = data), 1000);
+}
 </script>
 
 <template>
   <div class="flex flex-col items-center">
+    <DeferredContent @load="onLoadBanners" class="w-5/6 mt-4">
+      <Galleria
+        :value="banners"
+        :numVisible="5"
+        :showThumbnails="false"
+        :showIndicators="true"
+        v-if="banners"
+      >
+        <template #item="slotProps">
+          <img
+            :src="slotProps.item.url"
+            alt="Tu Bookstore"
+            class="rounded object-cover w-full !h-60"
+          />
+        </template>
+      </Galleria>
+    </DeferredContent>
     <DeferredContent
       @load="onLoadLatestProduct"
       class="w-5/6"

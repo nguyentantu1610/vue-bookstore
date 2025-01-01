@@ -47,6 +47,7 @@ declare module 'vue' {
     MultiSelect: typeof import('primevue/multiselect')['default']
     NotFound: typeof import('./src/components/NotFound.vue')['default']
     OrderDetail: typeof import('./src/components/user/OrderDetail.vue')['default']
+    OrderManagement: typeof import('./src/components/admin/orders/OrderManagement.vue')['default']
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
     Paginator: typeof import('primevue/paginator')['default']
     Panel: typeof import('primevue/panel')['default']

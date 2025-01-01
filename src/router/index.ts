@@ -125,6 +125,12 @@ const router = createRouter({
           component: () =>
             import("../components/admin/products/ProductDetail.vue"),
         },
+        {
+          path: "orders",
+          name: "orders",
+          component: () =>
+            import("../components/admin/orders/OrderManagement.vue"),
+        },
       ],
     },
     {

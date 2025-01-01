@@ -3,25 +3,25 @@ import { ref } from "vue";
 
 const items = ref([
   {
-    label: "Hợp tác",
+    label: "Hợp Tác",
     items: [
       {
-        label: "Khách hàng",
+        label: "Khách Hàng",
         icon: "pi pi-users",
         route: "/admin/users",
       },
       {
-        label: "Nhà cung cấp",
+        label: "Nhà Cung Cấp",
         icon: "pi pi-building",
         route: "/admin/suppliers",
       },
     ],
   },
   {
-    label: "Sản phẩm",
+    label: "Sản Phẩm",
     items: [
       {
-        label: "Danh mục",
+        label: "Danh Mục",
         icon: "pi pi-tag",
         route: "/admin/categories",
       },
@@ -29,6 +29,16 @@ const items = ref([
         label: "Sách",
         icon: "pi pi-book",
         route: "/admin/products",
+      },
+    ],
+  },
+  {
+    label: "Đơn Hàng",
+    items: [
+      {
+        label: "Đơn Đặt Hàng",
+        icon: "pi pi-box",
+        route: "/admin/orders",
       },
     ],
   },
