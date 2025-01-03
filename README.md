@@ -1,33 +1,65 @@
-# vue-bookstore
+# E-commerce Platform Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+This is the frontend for the E-commerce platform, built with **Vue.js**. It communicates with a [RESTful API backend](https://github.com/nguyentantu1610/bookstore) (powered by Laravel) to manage suppliers, categories, products, users and orders.
 
-## Recommended IDE Setup
+This is a Single Page Application (SPA) that offers a smooth user experience and dynamic page updates without reloading the entire page.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Features
 
-## Type Support for `.vue` Imports in TS
+- **Product Display**: View available products in various categories, users can search, sort and filter results.
+- **User Authentication**: Login, registration, and password reset functionality.
+- **Shopping Cart**: Add, remove, and manage items in the shopping cart.
+- **Order Placement**: Place orders and track order history.
+- **Vue Router**: Single Page Application routing and protect route.
+- **Pinia State Management**: For centralized state management.
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## Installation
 
-## Customize configuration
+Follow these steps to set up the frontend application locally.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 1. Clone the repository
 
-## Project Setup
+```bash
+git clone https://github.com/nguyentantu1610/vue-bookstore.git
+cd vue-bookstore
+```
 
-```sh
+### 2. Install dependencies
+
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### 3. Compile and Hot-Reload for Development
 
-```sh
+```bash
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+### 4. Type-Check, Compile and Minify for Production
 
-```sh
+```bash
 npm run build
 ```
+
+## Technologies Used
+
+- **Vue.js**: Progressive JavaScript framework for building the user interface.
+- **Vue Router**: To handle client-side routing and protect route.
+- **Pinia**: For state management in the Vue application.
+- **Tailwind CSS**: Flexible CSS classes.
+- **Primevue**: UI component suite for Vue.
+
+## API Documentation
+
+The API documentation for the backend is available [here](https://github.com/nguyentantu1610/bookstore).
+
+## Acknowledgements
+
+- Vue.js for providing an approachable, performant and versatile framework for building web user interfaces.
+- Tailwind CSS for providing flexible CSS classes with predefined CSS rules.
+- Primevue for providing a rich set of UI components, icons.
+
+
+
+
