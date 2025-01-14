@@ -44,11 +44,11 @@ npm run build
 
 ## Technologies Used
 
-- **Vue.js**: Progressive JavaScript framework for building the user interface.
-- **Vue Router**: To handle client-side routing and protect route.
-- **Pinia**: For state management in the Vue application.
-- **Tailwind CSS**: Flexible CSS classes.
-- **Primevue**: UI component suite for Vue.
+- **Vue.js**: A progressive JavaScript framework for building user interfaces.
+- **Vue Router**: Handles client-side routing and protects route.
+- **Pinia**: Used for state management in the Vue application.
+- **Tailwind CSS**: A utility-first CSS framework for building custom designs.
+- **Primevue**: A comprehensive UI component suite for Vue.js.
 
 ## API Documentation
 
@@ -56,9 +56,9 @@ The API documentation for the backend is available [here](https://github.com/ngu
 
 ## Acknowledgements
 
-- Vue.js for providing an approachable, performant and versatile framework for building web user interfaces.
-- Tailwind CSS for providing flexible CSS classes with predefined CSS rules.
-- Primevue for providing a rich set of UI components, icons.
+- Vue.js for providing an approachable, performant, and versatile framework for building web user interfaces.
+- Tailwind CSS for offering flexible CSS classes with predefined rules.
+- Primevue for providing a rich set of UI components and icons.
 
 
 
