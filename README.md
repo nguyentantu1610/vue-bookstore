@@ -6,12 +6,10 @@ This is a Single Page Application (SPA) that offers a smooth user experience and
 
 ## Features
 
-- **Product Display**: View available products in various categories, users can search, sort and filter results.
+- **Product Management**: View available products in various categories, users can search, sort and filter results.
 - **User Authentication**: Login, registration, and password reset functionality.
 - **Shopping Cart**: Add, remove, and manage items in the shopping cart.
 - **Order Placement**: Place orders and track order history.
-- **Vue Router**: Single Page Application routing and protect route.
-- **Pinia State Management**: For centralized state management.
 
 ## Installation
 
@@ -59,7 +57,3 @@ The API documentation for the backend is available [here](https://github.com/ngu
 - Vue.js for providing an approachable, performant, and versatile framework for building web user interfaces.
 - Tailwind CSS for offering flexible CSS classes with predefined rules.
 - Primevue for providing a rich set of UI components and icons.
-
-
-
-
